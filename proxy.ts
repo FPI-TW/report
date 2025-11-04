@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
 import createMiddleware from "next-intl/middleware"
-import { handleLanguageRedirect } from "./middleware/language"
+import { handleLanguageRedirect } from "./proxy/language"
 
 const intlMiddleware = createMiddleware({
   locales: ["zh-hant", "zh-hans", "en"],
