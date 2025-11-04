@@ -1,0 +1,5 @@
+# Husky pre-commit: type-check then lint (no tests yet configured)
+pnpm type-check || exit 1
+pnpm lint:check || exit 1
+pnpm format:check || exit 1
+
