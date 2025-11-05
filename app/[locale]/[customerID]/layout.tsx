@@ -6,9 +6,8 @@ export default async function Layout({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative bg-neutral-200">
+    <div className="relative">
       <Toaster richColors closeButton />
-
       {children}
     </div>
   )
