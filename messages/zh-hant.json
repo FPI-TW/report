@@ -1,3 +1,11 @@
 {
-  "hello": "你好"
+  "hello": "你好",
+  "dashboard": {
+    "title": "簡報",
+    "subtitle": "依年份與月份分組",
+    "placeholder": "PDF 佔位符"
+  },
+  "customer": {
+    "backgroundAlt": "背景"
+  }
 }

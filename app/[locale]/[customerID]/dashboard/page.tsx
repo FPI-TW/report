@@ -1,3 +1,5 @@
+"use client"
+
 type Brief = {
   id: string
   title: string
@@ -63,10 +65,13 @@ function monthLabel(m: number) {
   return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
 }
 
+import { useTranslations } from "next-intl"
+
 export default function DashboardPage() {
   const grouped = groupByYearMonth(briefs)
   const years = Array.from(grouped.keys()).sort((a, b) => b - a)
   const BRAND = "#ddae58"
+  const t = useTranslations("dashboard")
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-8">
@@ -81,9 +86,9 @@ export default function DashboardPage() {
       />
       <header className="relative mb-6">
         <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
-          Briefs
+          {t("title")}
         </h1>
-        <p className="text-sm text-gray-700">Grouped by year and month</p>
+        <p className="text-sm text-gray-700">{t("subtitle")}</p>
         <div className="mt-3" style={{ borderBottom: `2px solid ${BRAND}` }} />
       </header>
 
@@ -129,7 +134,7 @@ export default function DashboardPage() {
                           }}
                         >
                           <div className="flex h-full items-center justify-center text-neutral-500">
-                            <span className="text-xs">PDF placeholder</span>
+                            <span className="text-xs">{t("placeholder")}</span>
                           </div>
                         </div>
                         <div className="mt-3 space-y-1">
