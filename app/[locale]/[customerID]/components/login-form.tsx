@@ -7,19 +7,23 @@ import { validateLogin } from "@/lib/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
+import { useTranslations } from "next-intl"
 
-const loginSchema = z.object({
-  account: z.string().min(1, "Account is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-})
-
-type LoginValues = z.infer<typeof loginSchema>
+type LoginValues = {
+  account: string
+  password: string
+}
 
 type LoginFormProps = {
   customerID: string
 }
 
 export default function LoginForm({ customerID }: LoginFormProps) {
+  const t = useTranslations("login")
+  const loginSchema = z.object({
+    account: z.string().min(1, t("accountRequired")),
+    password: z.string().min(6, t("passwordMin")),
+  })
   const {
     register,
     handleSubmit,
@@ -53,13 +57,13 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       values.password
     )
     if (!result.ok) {
-      const msg = result.message ?? "Invalid credentials"
+      const msg = t("invalidCredentials")
       setServerError(msg)
       toast.error(msg)
       return
     }
 
-    toast.success("Logged in successfully")
+    toast.success(t("loggedInSuccess"))
     router.push(`/${customerID}/dashboard`)
   }
 
@@ -76,14 +80,18 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       {/* backdrop for readability */}
       <div className="bg-white/80 px-6 py-8 backdrop-blur-sm">
         <div className="mb-5">
-          <h2 className="text-xl font-semibold text-gray-900">Welcome</h2>
-          <p className="text-sm text-gray-600">Customer: {customerID}</p>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {t("welcome")}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {t("customerLine", { id: customerID })}
+          </p>
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-900">
-              Account
+              {t("accountLabel")}
             </label>
             <Input
               type="text"
@@ -101,7 +109,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-900">
-              Password
+              {t("passwordLabel")}
             </label>
             <Input
               type="password"
@@ -124,7 +132,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
             disabled={isSubmitting}
             className="mt-2 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
           >
-            {isSubmitting ? "Signing in…" : "Sign in"}
+            {isSubmitting ? t("signingIn") : t("signIn")}
           </button>
         </div>
       </div>

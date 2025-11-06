@@ -7,5 +7,17 @@
   },
   "customer": {
     "backgroundAlt": "背景"
+  },
+  "login": {
+    "welcome": "欢迎",
+    "customerLine": "客户：{id}",
+    "accountLabel": "账号",
+    "passwordLabel": "密码",
+    "signIn": "登录",
+    "signingIn": "登录中…",
+    "loggedInSuccess": "登录成功",
+    "invalidCredentials": "账号或密码错误",
+    "accountRequired": "请输入账号",
+    "passwordMin": "密码至少 6 位"
   }
 }

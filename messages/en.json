@@ -7,5 +7,17 @@
   },
   "customer": {
     "backgroundAlt": "background"
+  },
+  "login": {
+    "welcome": "Welcome",
+    "customerLine": "Customer: {id}",
+    "accountLabel": "Account",
+    "passwordLabel": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "loggedInSuccess": "Logged in successfully",
+    "invalidCredentials": "Invalid credentials",
+    "accountRequired": "Account is required",
+    "passwordMin": "Password must be at least 6 characters"
   }
 }

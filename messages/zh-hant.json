@@ -7,5 +7,17 @@
   },
   "customer": {
     "backgroundAlt": "背景"
+  },
+  "login": {
+    "welcome": "歡迎",
+    "customerLine": "客戶：{id}",
+    "accountLabel": "帳號",
+    "passwordLabel": "密碼",
+    "signIn": "登入",
+    "signingIn": "登入中…",
+    "loggedInSuccess": "登入成功",
+    "invalidCredentials": "帳號或密碼錯誤",
+    "accountRequired": "請輸入帳號",
+    "passwordMin": "密碼至少需 6 碼"
   }
 }
