@@ -3,7 +3,12 @@
   "dashboard": {
     "title": "简报",
     "subtitle": "按年份和月份分组",
-    "placeholder": "PDF 占位符"
+    "placeholder": "PDF 占位符",
+    "loading": "加载中…",
+    "empty": "暂无简报",
+    "error": "加载简报失败",
+    "prev_page": "上一页",
+    "next_page": "下一页"
   },
   "customer": {
     "background_alt": "背景"

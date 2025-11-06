@@ -2,7 +2,12 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "../globals.css"
 import Provider from "./provider"
-import { getMessages, setRequestLocale } from "next-intl/server"
+import {
+  getLocale,
+  getMessages,
+  getTimeZone,
+  setRequestLocale,
+} from "next-intl/server"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,21 +26,22 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  params,
 }: Readonly<{
   children: React.ReactNode
-  params: Promise<{ locale: string }>
 }>) {
-  const { locale } = await params
+  const [messages, locale, timeZone] = await Promise.all([
+    getMessages(),
+    getLocale(),
+    getTimeZone(),
+  ])
   setRequestLocale(locale)
-  const messages = await getMessages()
 
   return (
     <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Provider locale={locale} messages={messages}>
+        <Provider locale={locale} messages={messages} timeZone={timeZone}>
           {children}
         </Provider>
       </body>

@@ -3,7 +3,12 @@
   "dashboard": {
     "title": "簡報",
     "subtitle": "依年份與月份分組",
-    "placeholder": "PDF 佔位符"
+    "placeholder": "PDF 佔位符",
+    "loading": "載入中…",
+    "empty": "目前沒有簡報",
+    "error": "載入簡報失敗",
+    "prev_page": "上一頁",
+    "next_page": "下一頁"
   },
   "customer": {
     "background_alt": "背景"

@@ -3,7 +3,12 @@
   "dashboard": {
     "title": "Briefs",
     "subtitle": "Grouped by year and month",
-    "placeholder": "PDF placeholder"
+    "placeholder": "PDF placeholder",
+    "loading": "Loading…",
+    "empty": "No briefs available",
+    "error": "Failed to load briefs",
+    "prev_page": "Previous",
+    "next_page": "Next"
   },
   "customer": {
     "background_alt": "background"
