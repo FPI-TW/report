@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { validateLogin } from "@/lib/auth"
+// import { validateLogin } from "@/lib/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 type LoginValues = {
   account: string
@@ -20,6 +20,7 @@ type LoginFormProps = {
 
 export default function LoginForm({ customerID }: LoginFormProps) {
   const t = useTranslations("login")
+  const locale = useLocale()
   const loginSchema = z.object({
     account: z.string().min(1, t("account_required")),
     password: z.string().min(6, t("password_min")),
@@ -51,12 +52,16 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       return
     }
 
-    const result = await validateLogin(
-      customerID,
-      values.account,
-      values.password
-    )
-    if (!result.ok) {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        customerID,
+        account: values.account,
+        password: values.password,
+      }),
+    })
+    if (!res.ok) {
       const msg = t("invalid_credentials")
       setServerError(msg)
       toast.error(msg)
@@ -64,7 +69,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
     }
 
     toast.success(t("logged_in_success"))
-    router.push(`/${customerID}/dashboard`)
+    router.push(`/${locale}/${customerID}/dashboard`)
   }
 
   return (

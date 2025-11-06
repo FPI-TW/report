@@ -1,5 +1,10 @@
 import { NextRequest } from "next/server"
-import { ListObjectsV2Command } from "@aws-sdk/client-s3"
+import { cookies } from "next/headers"
+import { COOKIE_NAME, verifyJwt } from "@/lib/session"
+import {
+  ListObjectsV2Command,
+  type ListObjectsV2CommandOutput,
+} from "@aws-sdk/client-s3"
 import { makeR2Client, getR2Config, BRIEF_PREFIX, keyToBrief } from "@/lib/r2"
 
 type Group = {
@@ -14,6 +19,13 @@ function toYearMonth(dateStr: string) {
 }
 
 export async function GET(req: NextRequest) {
+  const sessionToken = (await cookies()).get(COOKIE_NAME)?.value
+  if (!sessionToken || !verifyJwt(sessionToken)) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    })
+  }
   const { searchParams } = new URL(req.url)
   const page = Math.max(1, Number(searchParams.get("page") || 1))
   const monthsPerPage = Math.max(1, Number(searchParams.get("months") || 6))
@@ -22,17 +34,17 @@ export async function GET(req: NextRequest) {
   const briefs: { key: string; date: string; url: string }[] = []
   const client = makeR2Client()
   const { bucket, publicBaseUrl } = getR2Config()
-  let token: string | undefined
+  let continuation: string | undefined
   const maxKeys = 1000
   let guard = 0
 
   try {
     do {
-      const resp = await client.send(
+      const resp: ListObjectsV2CommandOutput = await client.send(
         new ListObjectsV2Command({
           Bucket: bucket,
           Prefix: BRIEF_PREFIX,
-          ContinuationToken: token,
+          ContinuationToken: continuation,
           MaxKeys: maxKeys,
         })
       )
@@ -43,12 +55,12 @@ export async function GET(req: NextRequest) {
         const b = keyToBrief(key, publicBaseUrl)
         if (b) briefs.push(b)
       }
-      token = resp.IsTruncated
+      continuation = resp.IsTruncated
         ? resp.NextContinuationToken || undefined
         : undefined
       guard += 1
       if (guard > 100) break // safety guard
-    } while (token)
+    } while (continuation)
   } catch (err) {
     return new Response(
       JSON.stringify({
