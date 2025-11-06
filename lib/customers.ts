@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import crypto from "node:crypto"
+import console from "node:console"
 
 export type CustomerRecord = {
   customer_id: string
@@ -16,10 +17,11 @@ function loadFromEnv(): CustomerRecord[] | null {
   const raw = process.env.CUSTOMERS_JSON
   if (!raw) return null
   try {
-    const data = JSON.parse(raw)
+    const data = JSON.parse(Buffer.from(raw, "base64").toString("utf8"))
     if (Array.isArray(data)) return data as CustomerRecord[]
     return null
-  } catch {
+  } catch (e) {
+    console.log(e)
     return null
   }
 }
@@ -40,11 +42,13 @@ function loadFromFile(): CustomerRecord[] | null {
 export function loadCustomers(): CustomerRecord[] {
   if (cache) return cache
   const env = loadFromEnv()
+  console.log("env", env)
   if (env) {
     cache = env
     return cache
   }
   const file = loadFromFile()
+  console.log("file", file)
   if (file) {
     cache = file
     return cache
