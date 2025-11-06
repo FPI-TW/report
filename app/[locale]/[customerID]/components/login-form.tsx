@@ -21,8 +21,8 @@ type LoginFormProps = {
 export default function LoginForm({ customerID }: LoginFormProps) {
   const t = useTranslations("login")
   const loginSchema = z.object({
-    account: z.string().min(1, t("accountRequired")),
-    password: z.string().min(6, t("passwordMin")),
+    account: z.string().min(1, t("account_required")),
+    password: z.string().min(6, t("password_min")),
   })
   const {
     register,
@@ -57,13 +57,13 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       values.password
     )
     if (!result.ok) {
-      const msg = t("invalidCredentials")
+      const msg = t("invalid_credentials")
       setServerError(msg)
       toast.error(msg)
       return
     }
 
-    toast.success(t("loggedInSuccess"))
+    toast.success(t("logged_in_success"))
     router.push(`/${customerID}/dashboard`)
   }
 
@@ -91,7 +91,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
         <div className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-900">
-              {t("accountLabel")}
+              {t("account_label")}
             </label>
             <Input
               type="text"
@@ -109,7 +109,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-900">
-              {t("passwordLabel")}
+              {t("password_label")}
             </label>
             <Input
               type="password"
@@ -132,7 +132,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
             disabled={isSubmitting}
             className="mt-2 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
           >
-            {isSubmitting ? t("signingIn") : t("signIn")}
+            {isSubmitting ? t("signing_in") : t("sign_in")}
           </button>
         </div>
       </div>
