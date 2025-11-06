@@ -5,10 +5,10 @@ function monthLabel(m: number) {
 }
 
 import { useTranslations } from "next-intl"
-import Image from "next/image"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
-import { toast } from "sonner"
+import PdfItem from "./components/pdf-item"
+import { queryBriefs } from "./lib/query-briefs"
 
 type ApiBrief = { key: string; date: string; url: string }
 type ApiGroup = { year: number; month: number; items: ApiBrief[] }
@@ -28,13 +28,7 @@ export default function DashboardPage() {
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ["briefs", page, months],
-    queryFn: async () => {
-      const res = await fetch(`/api/briefs?page=${page}&months=${months}`, {
-        cache: "no-store",
-      })
-      if (!res.ok) throw new Error("failed")
-      return res.json()
-    },
+    queryFn: () => queryBriefs(page, months),
   })
 
   return (
@@ -48,11 +42,11 @@ export default function DashboardPage() {
             "radial-gradient(600px circle at 0% 0%, rgba(221, 174, 88, 0.10), transparent 60%)",
         }}
       />
-      <header className="relative mb-6">
-        <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
+      <header className="relative mb-6 space-y-4">
+        <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
           {t("title")}
         </h1>
-        <p className="text-sm text-gray-700">{t("subtitle")}</p>
+        <p className="text-md text-gray-700">{t("subtitle")}</p>
         <div className="mt-3" style={{ borderBottom: `2px solid ${BRAND}` }} />
       </header>
 
@@ -84,62 +78,9 @@ export default function DashboardPage() {
                 >
                   {monthLabel(group.month)} {group.year}
                 </h3>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-x-4 gap-y-6 sm:grid-cols-6 lg:grid-cols-8">
                   {group.items.map(item => (
-                    <article
-                      key={item.key}
-                      className="group cursor-pointer overflow-hidden rounded-lg border bg-white/75 p-3 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-md"
-                      style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
-                      onClick={async () => {
-                        const w = window.open("", "_blank")
-                        if (!w) return
-                        try {
-                          const res = await fetch(
-                            `/api/briefs/url?key=${encodeURIComponent(item.key)}`,
-                            { cache: "no-store" }
-                          )
-                          if (!res.ok) throw new Error("sign_failed")
-                          const data: { url: string } = await res.json()
-                          w.opener = null
-                          w.location.href = data.url
-                        } catch {
-                          toast.error(t("error"))
-                          w.close()
-                        }
-                      }}
-                    >
-                      <div
-                        className="flex aspect-3/4 w-full items-center justify-center overflow-hidden rounded-md border"
-                        style={{
-                          borderColor: "rgba(221, 174, 88, 0.35)",
-                          background:
-                            "linear-gradient(135deg, rgba(221, 174, 88, 0.08), rgba(221, 174, 88, 0.02))",
-                        }}
-                      >
-                        <Image
-                          src="/icon/pdf.svg"
-                          alt="PDF"
-                          width={48}
-                          height={48}
-                          className="opacity-80"
-                        />
-                      </div>
-                      <div className="mt-3 space-y-1">
-                        <h4 className="line-clamp-1 text-sm font-medium text-gray-900">
-                          {item.date}
-                        </h4>
-                        <p
-                          className="text-xs"
-                          style={{ color: "rgba(221, 174, 88, 0.9)" }}
-                        >
-                          {new Date(item.date).toLocaleDateString(undefined, {
-                            year: "numeric",
-                            month: "short",
-                            day: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </article>
+                    <PdfItem key={item.key} item={item} />
                   ))}
                 </div>
               </div>
