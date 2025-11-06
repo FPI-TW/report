@@ -32,14 +32,14 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 py-8">
+    <div className="relative mx-auto max-w-7xl p-8">
       {/* subtle brand-tinted background */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(600px circle at 0% 0%, rgba(221, 174, 88, 0.10), transparent 60%)",
+            "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
         }}
       />
       <header className="relative mb-6 space-y-4">
@@ -50,7 +50,7 @@ export default function DashboardPage() {
         <div className="mt-3" style={{ borderBottom: `2px solid ${BRAND}` }} />
       </header>
 
-      <div className="relative space-y-10">
+      <div className="relative space-y-12">
         {isLoading && <p className="text-sm text-gray-700">{t("loading")}</p>}
         {isError && <p className="text-sm text-red-600">{t("error")}</p>}
         {data && data.groups.length === 0 && !isLoading && !isError && (
@@ -61,35 +61,27 @@ export default function DashboardPage() {
             <section
               key={`${group.year}-${group.month}`}
               aria-labelledby={`year-${group.year}`}
-              className="space-y-6"
+              className="space-y-8"
             >
               <h2
                 id={`year-${group.year}`}
-                className="border-l-4 pl-3 text-xl font-semibold text-gray-900"
+                className="border-l-4 pl-3 text-xl font-semibold text-gray-800"
                 style={{ borderColor: BRAND }}
               >
-                {group.year}
+                {group.year} {monthLabel(group.month)}
               </h2>
 
-              <div className="space-y-3">
-                <h3
-                  className="text-base font-medium"
-                  style={{ color: "rgba(221, 174, 88, 0.85)" }}
-                >
-                  {monthLabel(group.month)} {group.year}
-                </h3>
-                <div className="grid gap-x-4 gap-y-6 sm:grid-cols-6 lg:grid-cols-8">
-                  {group.items.map(item => (
-                    <PdfItem key={item.key} item={item} />
-                  ))}
-                </div>
+              <div className="grid gap-x-4 gap-y-6 sm:grid-cols-6 lg:grid-cols-8">
+                {group.items.map(item => (
+                  <PdfItem key={item.key} item={item} />
+                ))}
               </div>
             </section>
           ))}
       </div>
 
       {data && (
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-12 flex items-center justify-between">
           <button
             className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
@@ -98,7 +90,7 @@ export default function DashboardPage() {
           >
             {t("prev_page")}
           </button>
-          <span className="text-xs text-gray-700">{data.page}</span>
+          {/* <span className="text-xs text-gray-700">{data.page}</span> */}
           <button
             className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
