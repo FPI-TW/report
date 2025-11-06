@@ -6,18 +6,18 @@
     "placeholder": "PDF placeholder"
   },
   "customer": {
-    "backgroundAlt": "background"
+    "background_alt": "background"
   },
   "login": {
     "welcome": "Welcome",
-    "customerLine": "Customer: {id}",
-    "accountLabel": "Account",
-    "passwordLabel": "Password",
-    "signIn": "Sign in",
-    "signingIn": "Signing in…",
-    "loggedInSuccess": "Logged in successfully",
-    "invalidCredentials": "Invalid credentials",
-    "accountRequired": "Account is required",
-    "passwordMin": "Password must be at least 6 characters"
+    "customer_line": "Customer: {id}",
+    "account_label": "Account",
+    "password_label": "Password",
+    "sign_in": "Sign in",
+    "signing_in": "Signing in…",
+    "logged_in_success": "Logged in successfully",
+    "invalid_credentials": "Invalid credentials",
+    "account_required": "Account is required",
+    "password_min": "Password must be at least 6 characters"
   }
 }

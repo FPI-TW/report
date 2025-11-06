@@ -6,18 +6,18 @@
     "placeholder": "PDF 佔位符"
   },
   "customer": {
-    "backgroundAlt": "背景"
+    "background_alt": "背景"
   },
   "login": {
     "welcome": "歡迎",
-    "customerLine": "客戶：{id}",
-    "accountLabel": "帳號",
-    "passwordLabel": "密碼",
-    "signIn": "登入",
-    "signingIn": "登入中…",
-    "loggedInSuccess": "登入成功",
-    "invalidCredentials": "帳號或密碼錯誤",
-    "accountRequired": "請輸入帳號",
-    "passwordMin": "密碼至少需 6 碼"
+    "customer_line": "客戶：{id}",
+    "account_label": "帳號",
+    "password_label": "密碼",
+    "sign_in": "登入",
+    "signing_in": "登入中…",
+    "logged_in_success": "登入成功",
+    "invalid_credentials": "帳號或密碼錯誤",
+    "account_required": "請輸入帳號",
+    "password_min": "密碼至少需 6 碼"
   }
 }
