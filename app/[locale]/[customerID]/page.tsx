@@ -35,5 +35,5 @@ export default async function Page({ params }: Props) {
 }
 
 const style = {
-  boxShadow: "rgba(0, 0, 0, 0.45) 0px 15px 40px",
+  boxShadow: "rgba(0, 0, 0, 0.6) 5px 15px 25px",
 } as React.CSSProperties

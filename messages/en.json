@@ -14,8 +14,7 @@
     "background_alt": "background"
   },
   "login": {
-    "welcome": "Welcome",
-    "customer_line": "Customer: {id}",
+    "login_title": "TingFong AI Report Bot",
     "account_label": "Account",
     "password_label": "Password",
     "sign_in": "Sign in",
@@ -23,6 +22,7 @@
     "logged_in_success": "Logged in successfully",
     "invalid_credentials": "Invalid credentials",
     "account_required": "Account is required",
-    "password_min": "Password must be at least 6 characters"
+    "password_min": "Password must be at least 6 characters",
+    "cuam": "China Universal Asset Management"
   }
 }

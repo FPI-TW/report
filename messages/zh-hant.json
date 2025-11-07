@@ -15,7 +15,7 @@
   },
   "login": {
     "welcome": "歡迎",
-    "customer_line": "客戶：{id}",
+    "login_title": "廷豐報告機器人",
     "account_label": "帳號",
     "password_label": "密碼",
     "sign_in": "登入",
@@ -23,6 +23,7 @@
     "logged_in_success": "登入成功",
     "invalid_credentials": "帳號或密碼錯誤",
     "account_required": "請輸入帳號",
-    "password_min": "密碼至少需 6 碼"
+    "password_min": "密碼至少需 6 碼",
+    "cuam": "滙添富"
   }
 }
