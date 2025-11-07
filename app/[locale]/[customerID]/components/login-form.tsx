@@ -82,15 +82,10 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       }}
     >
       {/* backdrop for readability */}
-      <div className="bg-white/80 px-6 py-8 backdrop-blur-sm">
-        <div className="mb-5">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {t("welcome")}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {t("customer_line", { id: customerID })}
-          </p>
-        </div>
+      <div className="space-y-5 bg-white/80 px-6 py-8 backdrop-blur-sm">
+        <h2 className="text-xl font-semibold text-gray-900">
+          {t(customerID)}-{t("login_title")}
+        </h2>
 
         <div className="space-y-4">
           <div>
