@@ -1,6 +1,6 @@
-import Image from "next/image"
 import LoginForm from "./components/login-form"
 import { cn } from "@/lib/utils"
+import Background from "./components/background"
 
 type Props = {
   params: Promise<{ customerID: string }>
@@ -18,13 +18,7 @@ export default async function Page({ params }: Props) {
         )}
         style={style}
       >
-        {/* Background */}
-        <Image
-          src={`/${customerID}/background.webp`}
-          alt="background"
-          fill
-          className="absolute size-full opacity-90"
-        />
+        <Background customerID={customerID} />
 
         {/* Content */}
         <div className="w-1/2"></div>
