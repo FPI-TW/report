@@ -71,7 +71,7 @@ export default function DashboardPage() {
                 {group.year} {monthLabel(group.month)}
               </h2>
 
-              <div className="grid gap-x-4 gap-y-6 sm:grid-cols-6 lg:grid-cols-8">
+              <div className="grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-5 lg:grid-cols-8">
                 {group.items.map(item => (
                   <PdfItem key={item.key} item={item} />
                 ))}
