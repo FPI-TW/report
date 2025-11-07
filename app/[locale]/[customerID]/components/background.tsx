@@ -1,25 +1,18 @@
 "use client"
 
-import Threads from "@/components/ui/Threads"
+import Image from "next/image"
 
-export default function Background() {
+export default function Background({ customerID }: { customerID: string }) {
+  const bgSrc = `/${customerID}/background.webp`
+  const fallbackSrc = `/default-background.webp`
+
   return (
-    <div
-      className="pointer-events-none fixed inset-0 z-0 h-dvh w-dvw opacity-80"
-      style={{
-        backgroundImage: "url('/CUAM/background.webp')",
-        backgroundSize: "750px 300px",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        height: "25vh",
-      }}
-    >
-      <Threads
-        amplitude={0.5}
-        distance={0}
-        enableMouseInteraction={false}
-        color={[1, 1, 1]}
-      />
-    </div>
+    <Image
+      src={bgSrc}
+      alt="background"
+      fill
+      className="absolute size-full opacity-90"
+      onError={e => (e.currentTarget.src = fallbackSrc)}
+    />
   )
 }
