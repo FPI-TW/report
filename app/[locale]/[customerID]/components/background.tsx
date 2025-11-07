@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 
-const fallbackSrc = `/image/default-background.webp`
+const fallbackSrc = `/image/background.webp`
 
 export default function Background({ customerID }: { customerID: string }) {
   console.log(customerID)
