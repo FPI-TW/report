@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import PdfItem from "./components/pdf-item"
 import { queryBriefs } from "./lib/query-briefs"
+import WarningAlert from "./components/warningAlert"
 
 type ApiBrief = { key: string; date: string; url: string }
 type ApiGroup = { year: number; month: number; items: ApiBrief[] }
@@ -20,11 +21,12 @@ type ApiResponse = {
   groups: ApiGroup[]
 }
 
+const BRAND = "#ddae58" as const
+const months = 6 as const
+
 export default function DashboardPage() {
   const [page, setPage] = useState(1)
-  const BRAND = "#ddae58"
   const t = useTranslations("dashboard")
-  const months = 6
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ["briefs", page, months],
@@ -33,22 +35,24 @@ export default function DashboardPage() {
 
   return (
     <div className="relative mx-auto max-w-7xl p-8">
+      <WarningAlert />
+
       {/* subtle brand-tinted background */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 min-h-screen"
         style={{
           background:
             "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
         }}
       />
-      <header className="relative mb-6 space-y-4">
+      <div className="relative mb-6 space-y-4">
         <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
           {t("title")}
         </h1>
         <p className="text-md text-gray-700">{t("subtitle")}</p>
         <div className="mt-3" style={{ borderBottom: `2px solid ${BRAND}` }} />
-      </header>
+      </div>
 
       <div className="relative space-y-12">
         {isLoading && <p className="text-sm text-gray-700">{t("loading")}</p>}

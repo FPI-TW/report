@@ -1,55 +1,24 @@
 "use client"
 
-import { useEffect, useRef } from "react"
 import { AlertTriangleIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
-
-type WarningAlertProps = {
-  open: boolean
-  onClose: () => void
-  type: "confidentiality_agreement" | "disclaimer"
-}
+import useWarningAlert from "../hooks/useWarningAlert"
 
 /**
- * WarningDialog
- * A simple, accessible dialog for showing long disclaimer text.
- * - Keeps content scrollable when text is long
- * - Closes on overlay click or Escape key
+ * 警示彈窗
  *
- * Usage with the repo's useDialog hook:
- *   const dialog = useDialog()
- *   <WarningDialog open={dialog.isOpen} onClose={dialog.close} />
+ * 每次開啟都顯示，共兩個須接受的條款
+ * 1. 隱私條款
+ * 2. 免責聲明
  */
-export default function WarningAlert({
-  open,
-  onClose,
-  type,
-}: WarningAlertProps) {
+export default function WarningAlert() {
   const t = useTranslations("common")
+  const { warningCounts, acceptDisclaimer, acceptAgreement } = useWarningAlert()
 
-  const panelRef = useRef<HTMLDivElement | null>(null)
+  const type = warningCounts === 0 ? "confidentialityAgreement" : "disclaimer"
+  const onClose = warningCounts === 0 ? acceptAgreement : acceptDisclaimer
 
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [open, onClose])
-
-  // Prevent body scroll when open
-  useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [open])
-
-  if (!open) return null
+  if (warningCounts >= 2) return null
 
   return (
     <div
@@ -62,13 +31,11 @@ export default function WarningAlert({
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" />
 
-      {/* Panel */}
       <div
-        ref={panelRef}
         className="relative z-10 w-[min(92dvw,640px)] max-w-[92dvw] rounded-xl border border-black/10 bg-white shadow-2xl outline-none dark:bg-neutral-900"
         onClick={e => e.stopPropagation()}
       >
-        {type === "confidentiality_agreement" ? (
+        {type === "confidentialityAgreement" ? (
           <ConfidentialityAgreement />
         ) : (
           <Disclaimer />
