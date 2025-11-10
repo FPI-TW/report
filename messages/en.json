@@ -1,5 +1,34 @@
 {
   "hello": "hello",
+  "warning": {
+    "confidentiality_agreement": {
+      "title": "Confidentiality Agreement",
+      "subtitle": "TingFong FinTech Co., Ltd. (\"the Company\") – Confidentiality Agreement:",
+      "content_1": "To protect the rights and interests of TingFong FinTech Co., Ltd. (the \"Company\") and its partners, the user (\"you\") agrees to the following:",
+      "content_2": "Definition of Confidential Information: Non‑public information obtained through your access to this website/service, including but not limited to: technical or product documents, system architecture, source code or code fragments, design drafts, admin interfaces and configurations, test data, API specifications and keys, pricing and business plans, usage/traffic/performance data, and any information marked as confidential or that should reasonably be considered confidential (including notes, summaries, analyses, or derivative materials you create based on the foregoing) (collectively, \"Confidential Information\"). Confidential Information does not include: (a) information you lawfully possessed without a duty of confidentiality before receiving it; (b) information that becomes public through no fault of yours; (c) information lawfully obtained from a third party without a duty of confidentiality; (d) information you can prove in writing was independently developed without use of the Confidential Information.",
+      "content_3": "Permitted Use and Prohibited Conduct: You may not use or disclose the Confidential Information for any purpose other than accessing the website/service. Without the Company’s prior written consent, you shall not disclose, distribute, publish, reproduce, capture screenshots, or retransmit Confidential Information, nor perform scraping, automated crawling, mirroring, bulk downloading, reverse engineering/decompilation/deobfuscation, or similar activities.",
+      "content_4": "Protection Standard: You shall adopt reasonable measures to protect the Confidential Information, at a level no less stringent than those you use to protect your own confidential information of similar nature.",
+      "content_5": "Legal Disclosure: If disclosure is required by law or by order of a court/regulatory authority, you shall, to the extent permitted, promptly notify the Company and disclose only what is necessary.",
+      "content_6": "No Rights Granted: This agreement does not grant, license, or transfer any intellectual property rights. All rights and title to the Confidential Information remain with the Company or its rights holders.",
+      "content_7": "Governing Law and Jurisdiction: This agreement is governed by the laws of the Republic of China (Taiwan), with the Taipei District Court as the court of first instance.",
+      "content_8": "Miscellaneous: This agreement, together with the website Terms of Use, constitutes the entire agreement. If any provision is held invalid, the remaining provisions remain in effect. You may not assign or transfer your rights or obligations under this agreement without the Company’s written consent."
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "subtitle": "TingFong FinTech Co., Ltd. (\"the Company\") – Disclaimer:",
+      "content_1": "Please read these Terms and Conditions carefully before using the Company’s website. The Terms and Conditions apply to all pages of the website, whether or not they are displayed on each page individually.",
+      "content_2": "By using the Company’s website, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions without limitation or modification.",
+      "content_3": "If you do not agree to these Terms and Conditions, you may not be able to access or use the Company’s website. The Company reserves the right, at its sole discretion, to change, modify, add, or remove portions of these Terms at any time.",
+      "content_4": "Your continued use of the website after changes to the Terms and Conditions constitutes your acceptance of the revised Terms.",
+      "content_5": "Content and materials provided by the Company are for general reference only. Such content and materials include, without limitation, statements, commentary, opinions, recommendations, charts, images, news, and research reports.",
+      "content_6": "Without the Company’s written consent, no content or materials provided by the Company may be copied, reproduced, transmitted, or distributed in any manner and/or form.",
+      "content_7": "The content and materials provided by the Company should not be construed as an offer, solicitation, invitation, or recommendation to buy or sell any securities, services, or products in any jurisdiction.",
+      "content_8": "While the Company endeavors to ensure the accuracy and reliability of the content and materials provided, the Company makes no express or implied warranty that the information is timely, continuous, accurate, or complete for any particular purpose.",
+      "content_9": "Under no circumstances shall the Company be liable for any loss or damage arising from inaccuracies, errors, delays, or omissions in the data (including liability in tort, contract, or otherwise).",
+      "content_10": "Users should independently assess risks when making any investment decisions. If the user has any doubts, they should consult other professional advisors.",
+      "content_11": "The Company shall not be liable for any direct, indirect, consequential, incidental, loss of profits, or loss of opportunity incurred by any person and/or third party arising from the use of any materials or services provided by the Company."
+    }
+  },
   "dashboard": {
     "title": "Daily Briefs",
     "subtitle": "The TingFong AI Morning Report Bot automatically generates daily updates, capturing the most up-to-date global information in real time. Using AI, it produces text, images, tables, and analytical insights covering eight major markets: U.S. macroeconomics and global bonds, cryptocurrency, foreign exchange, U.S. equities, Hong Kong equities, Mainland China equities, Taiwan equities, and the options market. Backed by years of professional expertise and experience, the core team has integrated AI technology to develop unique indicators and models that differentiate it from traditional brokerage reports—offering a more accurate foundation for market assessment.",
