@@ -15,7 +15,7 @@ export default function Background({ customerID }: { customerID: string }) {
       src={src}
       alt="background"
       fill
-      className="absolute size-full opacity-90"
+      className="absolute size-full object-cover opacity-90"
       onError={() => src !== fallbackSrc && setSrc(fallbackSrc)}
       unoptimized
       priority

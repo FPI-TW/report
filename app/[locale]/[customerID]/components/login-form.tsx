@@ -74,7 +74,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="relative w-full max-w-sm overflow-hidden rounded-xl shadow-2xl ring-1 ring-black/5"
+      className="relative mx-4 w-3/4 max-w-sm overflow-hidden rounded-xl shadow-2xl ring-1 ring-black/5 backdrop-blur-[1px] sm:mx-6 sm:w-full md:mx-0"
       style={{
         backgroundImage: `url('/${customerID}/background.webp')`,
         backgroundSize: "cover",
@@ -82,20 +82,20 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       }}
     >
       {/* backdrop for readability */}
-      <div className="space-y-5 bg-white/80 px-6 py-8 backdrop-blur-sm">
-        <h2 className="text-xl font-semibold text-gray-900">
+      <div className="space-y-4 bg-white/80 px-4 py-5 backdrop-blur-sm sm:px-6 sm:py-8 md:space-y-5 md:px-8 md:py-10">
+        <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
           {t(customerID)}-{t("login_title")}
         </h2>
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-900">
+            <label className="mb-1 block text-xs font-medium text-gray-900 md:text-sm">
               {t("account_label")}
             </label>
             <Input
               type="text"
               autoComplete="username"
-              className="border-neutral-800 bg-transparent text-gray-900 placeholder:text-gray-500 valid:bg-none"
+              className="h-8 border-neutral-800 bg-transparent text-gray-900 placeholder:text-gray-500 valid:bg-none sm:h-10"
               {...register("account")}
             />
 
@@ -113,7 +113,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
             <Input
               type="password"
               autoComplete="current-password"
-              className="border-neutral-800 bg-transparent text-gray-900 placeholder:text-gray-500"
+              className="h-8 border-neutral-800 bg-transparent text-gray-900 placeholder:text-gray-500 valid:bg-none sm:h-10"
               {...register("password")}
             />
             {errors.password && (
@@ -129,7 +129,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-2 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            className="mt-2 w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50 sm:py-2.5"
           >
             {isSubmitting ? t("signing_in") : t("sign_in")}
           </button>

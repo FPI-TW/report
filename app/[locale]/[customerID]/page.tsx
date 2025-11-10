@@ -13,15 +13,19 @@ export default async function Page({ params }: Props) {
     <div className="flex h-dvh w-dvw items-center justify-center overflow-hidden">
       <section
         className={cn(
-          "relative m-24 size-full max-h-3/4 overflow-hidden rounded-sm shadow-2xl",
-          "flex items-center justify-center"
+          "relative mx-4 my-8 h-3/4 max-h-[85dvh] w-full overflow-hidden rounded-sm shadow-2xl sm:h-full",
+          "sm:mx-6 sm:my-10 md:m-12 lg:m-16 xl:m-24",
+          "grid grid-cols-1 md:grid-cols-2",
+          "place-items-center"
         )}
         style={style}
       >
         <Background customerID={customerID} />
 
-        {/* Content */}
-        <div className="w-1/2"></div>
+        {/* Left visual space on larger screens only */}
+        <div className="hidden h-full w-full md:block" aria-hidden="true" />
+
+        {/* Form */}
         <LoginForm customerID={customerID} />
       </section>
     </div>
