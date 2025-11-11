@@ -39,7 +39,11 @@
     "empty": "暂无简报",
     "error": "加载简报失败",
     "prev_page": "上一页",
-    "next_page": "下一页"
+    "next_page": "下一页",
+    "tab_daily": "每日晨报",
+    "tab_weekly": "策略週报",
+    "tab_research": "专题报告",
+    "tab_ai_news": "AI 重讯"
   },
   "customer": {
     "background_alt": "背景"

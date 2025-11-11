@@ -8,7 +8,8 @@ import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import PdfItem from "./components/pdf-item"
-import { queryDailyReport } from "./lib/query-daily-repot"
+import Tabs from "./components/tabs"
+import { queryReportByKind, type ReportKind } from "./lib/query-report-by-kind"
 import WarningAlert from "./components/warningAlert"
 
 type ApiReport = { key: string; date: string; url: string }
@@ -26,11 +27,12 @@ const months = 6 as const
 
 export default function DashboardPage() {
   const [page, setPage] = useState(1)
+  const [kind, setKind] = useState<ReportKind>("daily-report")
   const t = useTranslations("dashboard")
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
-    queryKey: ["reports", page, months],
-    queryFn: () => queryDailyReport(page, months),
+    queryKey: ["reports", kind, page, months],
+    queryFn: () => queryReportByKind(kind, page, months),
   })
 
   return (
@@ -46,6 +48,17 @@ export default function DashboardPage() {
             "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
         }}
       />
+      {/* Top tabs above title */}
+      <div className="relative mb-6">
+        <Tabs
+          value={kind}
+          onChange={v => {
+            setKind(v)
+            setPage(1)
+          }}
+        />
+      </div>
+
       <div className="relative mb-6 space-y-4">
         <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
           {t("title")}

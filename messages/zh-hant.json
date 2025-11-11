@@ -39,7 +39,11 @@
     "empty": "目前沒有簡報",
     "error": "載入簡報失敗",
     "prev_page": "上一頁",
-    "next_page": "下一頁"
+    "next_page": "下一頁",
+    "tab_daily": "每日晨報",
+    "tab_weekly": "策略週報",
+    "tab_research": "專題報告",
+    "tab_ai_news": "AI 重訊"
   },
   "customer": {
     "background_alt": "背景"

@@ -39,7 +39,11 @@
     "empty": "No reports available",
     "error": "Failed to load reports",
     "prev_page": "Previous",
-    "next_page": "Next"
+    "next_page": "Next",
+    "tab_daily": "Daily",
+    "tab_weekly": "Weekly",
+    "tab_research": "Research",
+    "tab_ai_news": "AI News"
   },
   "customer": {
     "background_alt": "background"
