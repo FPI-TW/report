@@ -50,103 +50,112 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="relative mx-auto max-w-7xl p-8">
-      <WarningAlert />
+    <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col">
+      {/* Scrollable content area */}
+      <div className="relative grow overflow-y-auto p-8">
+        <WarningAlert />
 
-      {/* subtle brand-tinted background */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 min-h-screen"
-        style={{
-          background:
-            "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
-        }}
-      />
-      {/* Top tabs above title */}
-      <div className="relative mb-6">
-        <Tabs
-          value={type}
-          onChange={v => {
-            setType(v)
-            setPage(1)
+        {/* subtle brand-tinted background */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 min-h-screen"
+          style={{
+            background:
+              "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
           }}
         />
-      </div>
-
-      <div className="relative mb-6 space-y-4">
-        <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
-          {t(titleKeyMap[type])}
-        </h1>
-        <p className="text-md text-gray-700">{t(descKeyMap[type])}</p>
-        <div className="mt-3" style={{ borderBottom: `2px solid ${BRAND}` }} />
-      </div>
-
-      <div className="relative space-y-12">
-        {isLoading && <p className="text-sm text-gray-700">{t("loading")}</p>}
-        {isError && <p className="text-sm text-red-600">{t("error")}</p>}
-        {data && data.groups.length === 0 && !isLoading && !isError && (
-          <p className="text-sm text-gray-700">{t("empty")}</p>
-        )}
-        {data &&
-          data.groups.map(group => (
-            <section
-              key={`${group.year}-${group.month}`}
-              aria-labelledby={`year-${group.year}`}
-              className="space-y-8"
-            >
-              <h2
-                id={`year-${group.year}`}
-                className="border-l-4 pl-3 text-xl font-semibold text-gray-800"
-                style={{ borderColor: BRAND }}
-              >
-                {group.year} {monthLabel(group.month)}
-              </h2>
-
-              <div
-                className={cn(
-                  "grid gap-x-4 gap-y-6",
-                  "grid-cols-3 sm:grid-cols-5 lg:grid-cols-7"
-                )}
-              >
-                {group.items.map(item => {
-                  const fileName = decodeURIComponent(
-                    item.key.split("/").pop() || item.key
-                  )
-
-                  return (
-                    <PdfItem
-                      key={item.key}
-                      item={item}
-                      name={isLongName ? fileName : item.date}
-                    />
-                  )
-                })}
-              </div>
-            </section>
-          ))}
-      </div>
-
-      {data && (
-        <div className="mt-12 flex items-center justify-between">
-          <button
-            className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
-            disabled={!data.hasPrev || page === 1}
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-          >
-            {t("prev_page")}
-          </button>
-          {/* <span className="text-xs text-gray-700">{data.page}</span> */}
-          <button
-            className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
-            disabled={!data.hasNext}
-            onClick={() => setPage(p => p + 1)}
-          >
-            {t("next_page")}
-          </button>
+        {/* Top tabs above title */}
+        <div className="relative mb-6">
+          <Tabs
+            value={type}
+            onChange={v => {
+              setType(v)
+              setPage(1)
+            }}
+          />
         </div>
-      )}
+
+        <div className="relative mb-6 space-y-4">
+          <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
+            {t(titleKeyMap[type])}
+          </h1>
+          <p className="text-md text-gray-700">{t(descKeyMap[type])}</p>
+          <div
+            className="mt-3"
+            style={{ borderBottom: `2px solid ${BRAND}` }}
+          />
+        </div>
+
+        <div className="relative space-y-12">
+          {isLoading && <p className="text-sm text-gray-700">{t("loading")}</p>}
+          {isError && <p className="text-sm text-red-600">{t("error")}</p>}
+          {data && data.groups.length === 0 && !isLoading && !isError && (
+            <p className="text-sm text-gray-700">{t("empty")}</p>
+          )}
+          {data &&
+            data.groups.map(group => (
+              <section
+                key={`${group.year}-${group.month}`}
+                aria-labelledby={`year-${group.year}`}
+                className="space-y-8"
+              >
+                <h2
+                  id={`year-${group.year}`}
+                  className="border-l-4 pl-3 text-xl font-semibold text-gray-800"
+                  style={{ borderColor: BRAND }}
+                >
+                  {group.year} {monthLabel(group.month)}
+                </h2>
+
+                <div
+                  className={cn(
+                    "grid gap-x-4 gap-y-6",
+                    "grid-cols-3 sm:grid-cols-5 lg:grid-cols-7"
+                  )}
+                >
+                  {group.items.map(item => {
+                    const fileName = decodeURIComponent(
+                      item.key.split("/").pop() || item.key
+                    )
+
+                    return (
+                      <PdfItem
+                        key={item.key}
+                        item={item}
+                        name={isLongName ? fileName : item.date}
+                      />
+                    )
+                  })}
+                </div>
+              </section>
+            ))}
+        </div>
+      </div>
+
+      {/* Footer (always visible) */}
+      <footer className="sticky bottom-0 z-10 w-full border-t bg-white/80 px-8 py-3 backdrop-blur supports-backdrop-filter:bg-white/60">
+        {data && (
+          <div className="flex items-center justify-between">
+            <button
+              className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
+              disabled={!data.hasPrev || page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+            >
+              {t("prev_page")}
+            </button>
+            {/* <span className="text-xs text-gray-700">{data.page}</span> */}
+            <button
+              className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
+              disabled={!data.hasNext}
+              onClick={() => setPage(p => p + 1)}
+            >
+              {t("next_page")}
+            </button>
+          </div>
+        )}
+      </footer>
     </div>
   )
 }
