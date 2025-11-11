@@ -24,7 +24,7 @@ type ApiResponse = {
 }
 
 const BRAND = "#ddae58" as const
-const months = 6 as const
+const months = 2 as const
 
 export default function DashboardPage() {
   const [page, setPage] = useState(1)
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col">
+    <div className="relative mx-auto flex h-screen max-w-7xl flex-col">
       {/* Scrollable content area */}
       <div className="relative grow overflow-y-auto p-8">
         <WarningAlert />
@@ -58,7 +58,7 @@ export default function DashboardPage() {
         {/* subtle brand-tinted background */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 min-h-screen"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
               "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             >
               {t("prev_page")}
             </button>
-            {/* <span className="text-xs text-gray-700">{data.page}</span> */}
+            <span className="text-xs text-gray-700">{data.page}</span>
             <button
               className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
               style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
