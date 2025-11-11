@@ -8,11 +8,13 @@ import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import PdfItem from "./components/pdf-item"
-import { queryBriefs } from "./lib/query-briefs"
+import Tabs from "./components/tabs"
+import { queryReportByType, type ReportType } from "./lib/query-report-by-type"
 import WarningAlert from "./components/warningAlert"
+import { cn } from "@/lib/utils"
 
-type ApiBrief = { key: string; date: string; url: string }
-type ApiGroup = { year: number; month: number; items: ApiBrief[] }
+type ApiReport = { key: string; date: string; url: string }
+type ApiGroup = { year: number; month: number; items: ApiReport[] }
 type ApiResponse = {
   page: number
   months: number
@@ -26,11 +28,14 @@ const months = 6 as const
 
 export default function DashboardPage() {
   const [page, setPage] = useState(1)
+  const [type, setType] = useState<ReportType>("daily-report")
   const t = useTranslations("dashboard")
+  const isLongName = type === "research-report" || type === "ai-news"
+  console.log(isLongName)
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
-    queryKey: ["briefs", page, months],
-    queryFn: () => queryBriefs(page, months),
+    queryKey: ["reports", type, page, months],
+    queryFn: () => queryReportByType(type, page, months),
   })
 
   return (
@@ -46,6 +51,17 @@ export default function DashboardPage() {
             "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
         }}
       />
+      {/* Top tabs above title */}
+      <div className="relative mb-6">
+        <Tabs
+          value={type}
+          onChange={v => {
+            setType(v)
+            setPage(1)
+          }}
+        />
+      </div>
+
       <div className="relative mb-6 space-y-4">
         <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
           {t("title")}
@@ -75,10 +91,25 @@ export default function DashboardPage() {
                 {group.year} {monthLabel(group.month)}
               </h2>
 
-              <div className="grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-5 lg:grid-cols-8">
-                {group.items.map(item => (
-                  <PdfItem key={item.key} item={item} />
-                ))}
+              <div
+                className={cn(
+                  "grid gap-x-4 gap-y-6",
+                  "grid-cols-3 sm:grid-cols-5 lg:grid-cols-7"
+                )}
+              >
+                {group.items.map(item => {
+                  const fileName = decodeURIComponent(
+                    item.key.split("/").pop() || item.key
+                  )
+
+                  return (
+                    <PdfItem
+                      key={item.key}
+                      item={item}
+                      name={isLongName ? fileName : item.date}
+                    />
+                  )
+                })}
               </div>
             </section>
           ))}

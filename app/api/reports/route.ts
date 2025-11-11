@@ -5,7 +5,7 @@ import {
   ListObjectsV2Command,
   type ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3"
-import { makeR2Client, getR2Config, BRIEF_PREFIX, keyToBrief } from "@/lib/r2"
+import { makeR2Client, getR2Config, REPORT_PREFIX, keyToReport } from "@/lib/r2"
 
 type Group = {
   year: number
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       const resp: ListObjectsV2CommandOutput = await client.send(
         new ListObjectsV2Command({
           Bucket: bucket,
-          Prefix: BRIEF_PREFIX,
+          Prefix: REPORT_PREFIX,
           ContinuationToken: continuation,
           MaxKeys: maxKeys,
         })
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       for (const obj of contents) {
         const key = obj.Key
         if (!key) continue
-        const b = keyToBrief(key, publicBaseUrl)
+        const b = keyToReport(key, publicBaseUrl)
         if (b) briefs.push(b)
       }
       continuation = resp.IsTruncated

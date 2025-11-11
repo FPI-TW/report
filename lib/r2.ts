@@ -28,25 +28,49 @@ export function getR2Config() {
   }
 }
 
-export const BRIEF_PREFIX = "廷豐金融科技晨報_"
-export const BRIEF_REGEX = /^廷豐金融科技晨報_(\d{4}-\d{2}-\d{2})\.pdf$/
+export const REPORT_PREFIX = "廷豐金融科技晨報_"
+export const REPORT_REGEX = /^廷豐金融科技晨報_(\d{4}-\d{2}-\d{2})\.pdf$/
+export const ALLOWED_REPORT_PREFIXES = [
+  "daily-report/",
+  "weekly-report/",
+  "research-report/",
+  "ai-news/",
+]
 
-export type BriefObject = {
+export type ReportObject = {
   key: string
   date: string // YYYY-MM-DD
   url: string
 }
 
-export function keyToBrief(
+export function keyToReport(
   key: string,
   publicBaseUrl: string
-): BriefObject | null {
-  const m = key.match(BRIEF_REGEX)
+): ReportObject | null {
+  const m = key.match(REPORT_REGEX)
   if (!m) return null
   const date = m[1]!
   return {
     key,
     date,
-    url: `${publicBaseUrl}/${encodeURIComponent(key)}`,
+    url: buildPublicUrlFromKey(publicBaseUrl, key),
   }
+}
+
+export function isAllowedReportKey(key: string): boolean {
+  if (!key) return false
+  if (key.includes("..") || key.startsWith("/") || key.startsWith("\\"))
+    return false
+  return (
+    REPORT_REGEX.test(key) ||
+    ALLOWED_REPORT_PREFIXES.some(p => key.startsWith(p))
+  )
+}
+
+export function buildPublicUrlFromKey(
+  publicBaseUrl: string,
+  key: string
+): string {
+  const parts = key.split("/").map(encodeURIComponent)
+  return `${publicBaseUrl}/${parts.join("/")}`
 }

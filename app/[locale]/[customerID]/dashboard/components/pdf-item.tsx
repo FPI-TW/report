@@ -4,21 +4,23 @@ import Image from "next/image"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
-export type PdfBrief = { key: string; date: string; url: string }
+export type PdfSource = { key: string; date: string; url: string }
 
 type Props = {
-  item: PdfBrief
+  item: PdfSource
+  name?: string | undefined
 }
 
-export default function PdfItem({ item }: Props) {
+export default function PdfItem({ item, name }: Props) {
   const t = useTranslations("dashboard")
+  const displayName = name ?? item.date
 
   const handleClick = async () => {
     const w = window.open("", "_blank")
     if (!w) return
     try {
       const res = await fetch(
-        `/api/briefs/url?key=${encodeURIComponent(item.key)}`,
+        `/api/reports/url?key=${encodeURIComponent(item.key)}`,
         { cache: "no-store" }
       )
       if (!res.ok) throw new Error("sign_failed")
@@ -44,8 +46,8 @@ export default function PdfItem({ item }: Props) {
         height={64}
         className="opacity-80"
       />
-      <h4 className="line-clamp-1 text-lg font-medium text-gray-900">
-        {item.date}
+      <h4 className="text-center text-base font-medium break-all whitespace-normal text-gray-900 sm:text-lg">
+        {displayName}
       </h4>
     </article>
   )

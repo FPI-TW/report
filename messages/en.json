@@ -1,5 +1,7 @@
 {
-  "hello": "hello",
+  "common": {
+    "i_accept": "I accept"
+  },
   "warning": {
     "confidentiality_agreement": {
       "title": "Confidentiality Agreement",
@@ -30,14 +32,18 @@
     }
   },
   "dashboard": {
-    "title": "Daily Briefs",
+    "title": "Daily Reports",
     "subtitle": "The TingFong AI Morning Report Bot automatically generates daily updates, capturing the most up-to-date global information in real time. Using AI, it produces text, images, tables, and analytical insights covering eight major markets: U.S. macroeconomics and global bonds, cryptocurrency, foreign exchange, U.S. equities, Hong Kong equities, Mainland China equities, Taiwan equities, and the options market. Backed by years of professional expertise and experience, the core team has integrated AI technology to develop unique indicators and models that differentiate it from traditional brokerage reports—offering a more accurate foundation for market assessment.",
     "placeholder": "PDF placeholder",
     "loading": "Loading…",
-    "empty": "No briefs available",
-    "error": "Failed to load briefs",
+    "empty": "No reports available",
+    "error": "Failed to load reports",
     "prev_page": "Previous",
-    "next_page": "Next"
+    "next_page": "Next",
+    "tab_daily": "Daily",
+    "tab_weekly": "Weekly",
+    "tab_research": "Research",
+    "tab_ai_news": "AI News"
   },
   "customer": {
     "background_alt": "background"
