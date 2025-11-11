@@ -8,11 +8,11 @@ import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import PdfItem from "./components/pdf-item"
-import { queryBriefs } from "./lib/query-briefs"
+import { queryDailyReport } from "./lib/query-daily-repot"
 import WarningAlert from "./components/warningAlert"
 
-type ApiBrief = { key: string; date: string; url: string }
-type ApiGroup = { year: number; month: number; items: ApiBrief[] }
+type ApiReport = { key: string; date: string; url: string }
+type ApiGroup = { year: number; month: number; items: ApiReport[] }
 type ApiResponse = {
   page: number
   months: number
@@ -29,8 +29,8 @@ export default function DashboardPage() {
   const t = useTranslations("dashboard")
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
-    queryKey: ["briefs", page, months],
-    queryFn: () => queryBriefs(page, months),
+    queryKey: ["reports", page, months],
+    queryFn: () => queryDailyReport(page, months),
   })
 
   return (
