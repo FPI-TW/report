@@ -13,8 +13,8 @@ function hasPathLocale(pathname: string): boolean {
 function getCookieLocale(request: NextRequest): AvailableLocale | undefined {
   const cookie = request.cookies.get("NEXT_LOCALE")?.value as string | undefined
   if (!cookie) return undefined
-  const value = cookie as AvailableLocale
-  return locales.includes(value) ? value : undefined
+  const value = cookie in locales ? (cookie as AvailableLocale) : undefined
+  return value
 }
 
 function parseAcceptLanguage(
@@ -51,7 +51,12 @@ export function handleLanguageRedirect(
   const { pathname, search } = nextUrl
 
   // If the path already has a locale, respect it and do nothing
-  if (hasPathLocale(pathname)) return null
+  if (hasPathLocale(pathname)) {
+    // set cookie("NEXT_LOCALE") to the locale in the path
+    const locale = pathname.split("/")[1] as AvailableLocale
+    request.cookies.set("NEXT_LOCALE", locale)
+    return null
+  }
 
   // Compute target locale: cookie -> Accept-Language -> default
   const cookieLocale = getCookieLocale(request)

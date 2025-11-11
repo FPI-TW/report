@@ -31,7 +31,6 @@ export default function DashboardPage() {
   const [type, setType] = useState<ReportType>("daily-report")
   const t = useTranslations("dashboard")
   const isLongName = type === "research-report" || type === "ai-news"
-  console.log(isLongName)
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ["reports", type, page, months],
