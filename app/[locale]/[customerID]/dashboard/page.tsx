@@ -31,6 +31,18 @@ export default function DashboardPage() {
   const [type, setType] = useState<ReportType>("daily-report")
   const t = useTranslations("dashboard")
   const isLongName = type === "research-report" || type === "ai-news"
+  const titleKeyMap: Record<ReportType, string> = {
+    "daily-report": "daily_title",
+    "weekly-report": "weekly_title",
+    "research-report": "research_title",
+    "ai-news": "ai_news_title",
+  }
+  const descKeyMap: Record<ReportType, string> = {
+    "daily-report": "daily_description",
+    "weekly-report": "weekly_description",
+    "research-report": "research_description",
+    "ai-news": "ai_news_description",
+  }
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ["reports", type, page, months],
@@ -63,9 +75,9 @@ export default function DashboardPage() {
 
       <div className="relative mb-6 space-y-4">
         <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
-          {t("title")}
+          {t(titleKeyMap[type])}
         </h1>
-        <p className="text-md text-gray-700">{t("subtitle")}</p>
+        <p className="text-md text-gray-700">{t(descKeyMap[type])}</p>
         <div className="mt-3" style={{ borderBottom: `2px solid ${BRAND}` }} />
       </div>
 

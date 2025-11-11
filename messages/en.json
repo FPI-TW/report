@@ -32,8 +32,6 @@
     }
   },
   "dashboard": {
-    "title": "Daily Reports",
-    "subtitle": "The TingFong AI Morning Report Bot automatically generates daily updates, capturing the most up-to-date global information in real time. Using AI, it produces text, images, tables, and analytical insights covering eight major markets: U.S. macroeconomics and global bonds, cryptocurrency, foreign exchange, U.S. equities, Hong Kong equities, Mainland China equities, Taiwan equities, and the options market. Backed by years of professional expertise and experience, the core team has integrated AI technology to develop unique indicators and models that differentiate it from traditional brokerage reports—offering a more accurate foundation for market assessment.",
     "placeholder": "PDF placeholder",
     "loading": "Loading…",
     "empty": "No reports available",
@@ -41,9 +39,18 @@
     "prev_page": "Previous",
     "next_page": "Next",
     "tab_daily": "Daily",
+    "daily_title": "Daily Report",
+    "tdaily_description": "The Ting Fong AI Morning Report Bot automatically generates daily reports, capturing the most up-to-date global information in real time. Through AI-generated text, images, tables, and analyses, the content covers eight major markets: U.S. macroeconomics and global bond markets, cryptocurrencies, foreign exchange, U.S. equities, Hong Kong equities, Mainland China equities, Taiwan equities, and the options market. With years of professional expertise and accumulated experience, the core team integrates AI technology to develop unique indicators and models that differentiate our reports from traditional brokerage analyses, providing a more accurate foundation for market judgment.",
+    "daily_description": "The Ting Fong AI Morning Report Bot automatically generates daily reports, capturing the most up-to-date global information in real time. Through AI-generated text, images, tables, and analyses, the content covers eight major markets: U.S. macroeconomics and global bond markets, cryptocurrencies, foreign exchange, U.S. equities, Hong Kong equities, Mainland China equities, Taiwan equities, and the options market. With years of professional expertise and accumulated experience, the core team integrates AI technology to develop unique indicators and models that differentiate our reports from traditional brokerage analyses, providing a more accurate foundation for market judgment.",
     "tab_weekly": "Weekly",
+    "weekly_title": "Weekly Report",
+    "weekly_description": "Ting Fong’s exclusively developed AI investment strategies have obtained multiple patent certifications. The core philosophy behind the strategy development is: undertaking risks within a recognizable range, achieving expected target returns, and building absolute-return hedging strategies. The strategy engine covers: AITPF Intelligent Turning Point Detection Series, Trend Following Series, Bond Hedging Series, Market Neutral Series, Long/Short Equity, and High-Frequency Arbitrage Series.",
     "tab_research": "Research",
-    "tab_ai_news": "AI News"
+    "research_title": "Research Report",
+    "research_description": "Ting Fong FinTech provides in-depth analysis of the financial markets from a professional perspective, continuously offering unique insights. By combining industry experience with innovative technology, we deliver valuable market intelligence to our clients. This special report section presents our observations and analyses of the financial markets to help you stay ahead of emerging opportunities.",
+    "tab_ai_news": "AI News",
+    "ai_news_title": "AI Daily Intelligence Report",
+    "ai_news_description": "As artificial intelligence continues to play an increasingly vital role across various industries, keeping up with its rapid developments has become essential. Ting Fong FinTech provides a daily AI intelligence report to help you stay informed of the latest trends and breakthroughs in artificial intelligence, ensuring you remain ahead in this digital era."
   },
   "customer": {
     "background_alt": "background"
