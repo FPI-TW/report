@@ -3,22 +3,22 @@ import path from "node:path"
 import crypto from "node:crypto"
 import console from "node:console"
 
-export type CustomerRecord = {
-  customer_id: string
+export type UserRecord = {
+  user_id: string
   account: string
   hash: string // base64 of scrypt-derived key
   salt: string // base64
   active?: boolean
 }
 
-let cache: CustomerRecord[] | null = null
+let cache: UserRecord[] | null = null
 
-function loadFromEnv(): CustomerRecord[] | null {
-  const raw = process.env.CUSTOMERS_JSON
+function loadFromEnv(): UserRecord[] | null {
+  const raw = process.env.USERS_JSON
   if (!raw) return null
   try {
     const data = JSON.parse(Buffer.from(raw, "base64").toString("utf8"))
-    if (Array.isArray(data)) return data as CustomerRecord[]
+    if (Array.isArray(data)) return data as UserRecord[]
     return null
   } catch (e) {
     console.error(e)
@@ -26,20 +26,20 @@ function loadFromEnv(): CustomerRecord[] | null {
   }
 }
 
-function loadFromFile(): CustomerRecord[] | null {
+function loadFromFile(): UserRecord[] | null {
   try {
-    const file = path.join(process.cwd(), "customers.json")
+    const file = path.join(process.cwd(), "users.json")
     if (!fs.existsSync(file)) return null
     const raw = fs.readFileSync(file, "utf8")
     const data = JSON.parse(raw)
-    if (Array.isArray(data)) return data as CustomerRecord[]
+    if (Array.isArray(data)) return data as UserRecord[]
     return null
   } catch {
     return null
   }
 }
 
-export function loadCustomers(): CustomerRecord[] {
+export function loadUsers(): UserRecord[] {
   if (cache) return cache
   const env = loadFromEnv()
   if (env) {
@@ -56,13 +56,10 @@ export function loadCustomers(): CustomerRecord[] {
   return cache
 }
 
-export function findCustomerAccount(customerID: string, account: string) {
-  const list = loadCustomers()
+export function findUserAccount(customerID: string, account: string) {
+  const list = loadUsers()
   return list.find(
-    r =>
-      r.customer_id === customerID &&
-      r.account === account &&
-      (r.active ?? true)
+    r => r.user_id === customerID && r.account === account && (r.active ?? true)
   )
 }
 

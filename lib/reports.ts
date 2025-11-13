@@ -35,27 +35,24 @@ function prefixForKind(kind: ReportKind): string | undefined {
   }
 }
 
-function fallbackKeyToReport(
-  key: string,
-  publicBaseUrl: string
-): ReportItem | null {
+function fallbackKeyToReport(key: string, baseUrl: string): ReportItem | null {
   // Tries to extract a date anywhere in the key to support new categories
   const m = key.match(/(\d{4}-\d{2}-\d{2})/)
   if (!m) return null
   const date = m[1]!
-  return { key, date, url: buildPublicUrlFromKey(publicBaseUrl, key) }
+  return { key, date, url: buildPublicUrlFromKey(baseUrl, key) }
 }
 
 function keyToReportByKind(
   kind: ReportKind,
   key: string,
-  publicBaseUrl: string
+  baseUrl: string
 ): ReportItem | null {
   // For folder-based categories (including daily-report), derive date from key
   // by extracting YYYY-MM-DD found in the filename/path.
   // This remains compatible with various naming conventions.
-  if (kind === "daily-report") return fallbackKeyToReport(key, publicBaseUrl)
-  return fallbackKeyToReport(key, publicBaseUrl)
+  if (kind === "daily-report") return fallbackKeyToReport(key, baseUrl)
+  return fallbackKeyToReport(key, baseUrl)
 }
 
 export async function listReportGroupsByKind(
@@ -71,7 +68,7 @@ export async function listReportGroupsByKind(
   totalGroups: number
 }> {
   const client = makeR2Client()
-  const { bucket, publicBaseUrl } = getR2Config()
+  const { bucket, baseUrl } = getR2Config()
   const prefix = prefixForKind(kind)
 
   const items: ReportItem[] = []
@@ -93,7 +90,7 @@ export async function listReportGroupsByKind(
     for (const obj of contents) {
       const key = obj.Key
       if (!key) continue
-      const item = keyToReportByKind(kind, key, publicBaseUrl)
+      const item = keyToReportByKind(kind, key, baseUrl)
       if (item) items.push(item)
     }
     continuation = resp.IsTruncated

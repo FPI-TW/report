@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { findCustomerAccount, verifyPassword } from "@/lib/customers"
+import { findUserAccount, verifyPassword } from "@/lib/users"
 import {
   COOKIE_NAME,
   MAX_AGE_SECONDS,
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (!customerID || !account || !password)
       return NextResponse.json({ error: "invalid_body" }, { status: 400 })
 
-    const rec = findCustomerAccount(customerID, account)
+    const rec = findUserAccount(customerID, account)
     if (!rec || !verifyPassword(password, rec.salt, rec.hash)) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 })
     }
