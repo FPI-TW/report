@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { COOKIE_NAME, verifyJwt } from "@/lib/session"
+import { isSuperUserClaims } from "@/lib/admin"
 import { isAllowedReportKey, getR2Config, makeR2Client } from "@/lib/r2"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 
@@ -21,9 +22,16 @@ function prefixForCategory(cat: Category): string {
 
 export async function POST(req: NextRequest) {
   const sessionToken = (await cookies()).get(COOKIE_NAME)?.value
-  if (!sessionToken || !verifyJwt(sessionToken)) {
+  const claims = sessionToken ? verifyJwt(sessionToken) : null
+  if (!claims) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
+      headers: { "content-type": "application/json" },
+    })
+  }
+  if (!isSuperUserClaims(claims)) {
+    return new Response(JSON.stringify({ error: "forbidden" }), {
+      status: 403,
       headers: { "content-type": "application/json" },
     })
   }
