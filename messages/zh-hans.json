@@ -65,5 +65,25 @@
     "account_required": "请输入账号",
     "password_min": "密码至少 6 位",
     "cuam": "汇添富"
+  },
+  "dashboard_admin": {
+    "login_title": "内部后台登录",
+    "hint_super_only": "仅管理员可进入此后台的上传功能。"
+  },
+  "dashboard_upload": {
+    "title": "上传报告",
+    "description": "选择分类并上传文件。对象键与 GET API 使用相同的 bucket/prefix。",
+    "category_label": "分类",
+    "file_label": "文件（PDF）",
+    "filename_label": "对象文件名（可选）",
+    "filename_placeholder": "例如 2024-11-01.pdf",
+    "filename_hint": "若填写，将覆盖所选文件名。",
+    "target_key": "目标键：",
+    "pending": "（待选）",
+    "target_key_hint": "建议在文件名包含 YYYY-MM-DD 以利分组。",
+    "uploading": "上传中…",
+    "upload": "上传",
+    "uploaded": "已上传",
+    "open": "打开"
   }
 }

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useTranslations } from "next-intl"
 
 const schema = z.object({
   category: z.enum([
@@ -27,6 +28,8 @@ type FormValues = {
 const BRAND = "#ddae58" as const
 
 export default function UploadPage() {
+  const t = useTranslations("dashboard_upload")
+  const tDash = useTranslations("dashboard")
   const {
     register,
     handleSubmit,
@@ -93,12 +96,9 @@ export default function UploadPage() {
     <div>
       <div className="relative mb-6 space-y-2">
         <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
-          Upload Reports
+          {t("title")}
         </h1>
-        <p className="text-sm text-gray-700">
-          Choose a category and upload a file. Object key uses the same
-          bucket/prefix as the GET APIs.
-        </p>
+        <p className="text-sm text-gray-700">{t("description")}</p>
         <div className="mt-2" style={{ borderBottom: `2px solid ${BRAND}` }} />
       </div>
 
@@ -108,22 +108,22 @@ export default function UploadPage() {
       >
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-800">
-            Category
+            {t("category_label")}
           </label>
           <select
             className="w-full rounded border px-3 py-2 text-sm"
             {...register("category")}
           >
-            <option value="daily-report">Daily Report</option>
-            <option value="weekly-report">Weekly Report</option>
-            <option value="research-report">Research Report</option>
-            <option value="ai-news">AI News</option>
+            <option value="daily-report">{tDash("daily_title")}</option>
+            <option value="weekly-report">{tDash("weekly_title")}</option>
+            <option value="research-report">{tDash("research_title")}</option>
+            <option value="ai-news">{tDash("ai_news_title")}</option>
           </select>
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-800">
-            File (PDF)
+            {t("file_label")}
           </label>
           <input
             type="file"
@@ -156,27 +156,23 @@ export default function UploadPage() {
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-800">
-            Object filename (optional)
+            {t("filename_label")}
           </label>
           <input
             type="text"
-            placeholder="e.g. 2024-11-01.pdf"
+            placeholder={t("filename_placeholder")}
             className="w-full rounded border px-3 py-2 text-sm"
             {...register("filename")}
           />
-          <p className="text-xs text-gray-600">
-            If provided, this overrides the uploaded file name.
-          </p>
+          <p className="text-xs text-gray-600">{t("filename_hint")}</p>
         </div>
 
         <div className="space-y-1">
           <p className="text-xs text-gray-700">
-            Target key:{" "}
-            <span className="font-mono">{derivedKey || "(pending)"}</span>
+            {t("target_key")}{" "}
+            <span className="font-mono">{derivedKey || t("pending")}</span>
           </p>
-          <p className="text-xs text-gray-500">
-            Include a date like YYYY-MM-DD in the filename for correct grouping.
-          </p>
+          <p className="text-xs text-gray-500">{t("target_key_hint")}</p>
         </div>
 
         <div className="pt-2">
@@ -185,13 +181,13 @@ export default function UploadPage() {
             disabled={isSubmitting}
             className="rounded bg-[#ddae58] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Uploading..." : "Upload"}
+            {isSubmitting ? t("uploading") : t("upload")}
           </button>
         </div>
 
         {result && (
           <div className="rounded border border-green-200 bg-green-50 p-3 text-xs text-green-900">
-            <div>Uploaded</div>
+            <div>{t("uploaded")}</div>
             <div className="mt-1 font-mono">{result.key}</div>
             <a
               href={result.url}
@@ -199,7 +195,7 @@ export default function UploadPage() {
               rel="noreferrer"
               className="mt-2 inline-block text-blue-700 underline"
             >
-              Open
+              {t("open")}
             </a>
           </div>
         )}
