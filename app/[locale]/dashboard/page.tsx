@@ -6,7 +6,6 @@ import { useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 
 const schema = z.object({
-  customerID: z.string().min(1, "Required"),
   account: z.string().min(1, "Required"),
   password: z.string().min(1, "Required"),
 })
@@ -29,7 +28,11 @@ export default function DashboardLoginPage() {
     const resp = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(parsed.data),
+      body: JSON.stringify({
+        customerID: "tingfong",
+        account: parsed.data.account,
+        password: parsed.data.password,
+      }),
     })
     const body = await resp.json().catch(() => ({}))
     if (!resp.ok || !body?.ok) {
@@ -44,13 +47,6 @@ export default function DashboardLoginPage() {
       <div className="rounded-lg border bg-white/80 p-6 shadow-sm backdrop-blur">
         <h1 className="mb-4 text-xl font-semibold">Internal Dashboard Login</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm">Customer ID</label>
-            <input
-              className="w-full rounded border px-3 py-2 text-sm"
-              {...register("customerID")}
-            />
-          </div>
           <div>
             <label className="mb-1 block text-sm">Account</label>
             <input
