@@ -68,7 +68,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
     }
 
     toast.success(t("logged_in_success"))
-    router.push(`/${locale}/${customerID}/dashboard`)
+    router.push(`/${locale}/${customerID}/platform`)
   }
 
   return (

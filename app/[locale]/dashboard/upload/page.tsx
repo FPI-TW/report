@@ -90,13 +90,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div
-      className="relative mx-auto flex h-screen max-w-7xl flex-col px-6 py-6"
-      style={{
-        background:
-          "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
-      }}
-    >
+    <div>
       <div className="relative mb-6 space-y-2">
         <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
           Upload Reports
