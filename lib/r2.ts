@@ -24,7 +24,7 @@ export function makeR2Client(): S3Client {
 export function getR2Config() {
   return {
     bucket: requireEnv("R2_BUCKET"),
-    publicBaseUrl: requireEnv("R2_PUBLIC_BASE_URL"),
+    baseUrl: requireEnv("R2_BASE_URL"),
   }
 }
 
@@ -43,17 +43,14 @@ export type ReportObject = {
   url: string
 }
 
-export function keyToReport(
-  key: string,
-  publicBaseUrl: string
-): ReportObject | null {
+export function keyToReport(key: string, baseUrl: string): ReportObject | null {
   const m = key.match(REPORT_REGEX)
   if (!m) return null
   const date = m[1]!
   return {
     key,
     date,
-    url: buildPublicUrlFromKey(publicBaseUrl, key),
+    url: buildPublicUrlFromKey(baseUrl, key),
   }
 }
 
@@ -67,10 +64,7 @@ export function isAllowedReportKey(key: string): boolean {
   )
 }
 
-export function buildPublicUrlFromKey(
-  publicBaseUrl: string,
-  key: string
-): string {
+export function buildPublicUrlFromKey(baseUrl: string, key: string): string {
   const parts = key.split("/").map(encodeURIComponent)
-  return `${publicBaseUrl}/${parts.join("/")}`
+  return `${baseUrl}/${parts.join("/")}`
 }

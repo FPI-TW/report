@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   // Collect all qualifying objects (see note: R2/S3 listing is ascending; we sort desc after)
   const briefs: { key: string; date: string; url: string }[] = []
   const client = makeR2Client()
-  const { bucket, publicBaseUrl } = getR2Config()
+  const { bucket, baseUrl } = getR2Config()
   let continuation: string | undefined
   const maxKeys = 1000
   let guard = 0
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       for (const obj of contents) {
         const key = obj.Key
         if (!key) continue
-        const b = keyToReport(key, publicBaseUrl)
+        const b = keyToReport(key, baseUrl)
         if (b) briefs.push(b)
       }
       continuation = resp.IsTruncated
