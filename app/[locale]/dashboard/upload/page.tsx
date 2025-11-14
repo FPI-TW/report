@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
@@ -46,6 +46,7 @@ export default function UploadPage() {
   const [result, setResult] = useState<{ key: string; url: string } | null>(
     null
   )
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const category = watch("category")
   const filename = watch("filename")
   const fileList = watch("file")
@@ -125,10 +126,34 @@ export default function UploadPage() {
           <label className="block text-sm font-medium text-gray-800">
             {t("file_label")}
           </label>
+          <div
+            className="rounded border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-xs text-gray-600"
+            onDragOver={e => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            onDrop={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              const f = e.dataTransfer.files?.[0]
+              if (f) {
+                setValue("file", f, { shouldValidate: true })
+                setValue("filename", f.name)
+                if (fileInputRef.current) {
+                  const dt = new DataTransfer()
+                  dt.items.add(f)
+                  fileInputRef.current.files = dt.files
+                }
+              }
+            }}
+          >
+            {t("file_drop_hint")}
+          </div>
           <input
             type="file"
             accept="application/pdf"
             className="w-full rounded border px-3 py-2 text-sm"
+            ref={fileInputRef}
             onChange={e => {
               const f = e.target.files?.[0]
               if (f) {
@@ -136,16 +161,6 @@ export default function UploadPage() {
                 setValue("filename", f.name)
               }
             }}
-            // {...register("file", {
-            //   onChange: e => {
-            //     const list = (e.target as HTMLInputElement).files
-            //     const f = list?.[0]
-            //     if (f) {
-            //       setValue("file", f, { shouldValidate: true })
-            //       setValue("filename", f.name)
-            //     }
-            //   },
-            // })}
           />
           {errors.file && (
             <p className="text-xs text-red-600">
