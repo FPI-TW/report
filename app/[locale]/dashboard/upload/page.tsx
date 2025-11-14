@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 const schema = z.object({
   category: z.enum([
@@ -84,13 +85,21 @@ export default function UploadPage() {
     form.append("file", parsed.data.file)
     if (parsed.data.filename) form.append("filename", parsed.data.filename)
 
-    const resp = await fetch("/api/upload", { method: "POST", body: form })
-    const body = await resp.json().catch(() => ({}))
-    if (!resp.ok || !body?.ok) {
-      throw new Error(body?.message || body?.error || "Upload failed")
+    try {
+      const resp = await fetch("/api/upload", { method: "POST", body: form })
+      const body = await resp.json().catch(() => ({}))
+      if (!resp.ok || !body?.ok) {
+        throw new Error(body?.message || body?.error || "Upload failed")
+      }
+      setResult({ key: body.key, url: body.url })
+      reset({ category: parsed.data.category, filename: "" })
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      toast.success(t("toast_upload_success"))
+    } catch {
+      toast.error(t("toast_upload_error"))
     }
-    setResult({ key: body.key, url: body.url })
-    reset({ category: parsed.data.category, filename: "" })
   }
 
   return (
@@ -149,6 +158,7 @@ export default function UploadPage() {
                   dt.items.add(f)
                   fileInputRef.current.files = dt.files
                 }
+                toast.success(t("toast_file_selected"))
               }
             }}
           >
@@ -164,6 +174,7 @@ export default function UploadPage() {
               if (f) {
                 setValue("file", f, { shouldValidate: true })
                 setValue("filename", f.name)
+                toast.success(t("toast_file_selected"))
               }
             }}
           />
@@ -206,6 +217,7 @@ export default function UploadPage() {
               if (fileInputRef.current) {
                 fileInputRef.current.value = ""
               }
+              toast(t("toast_form_reset"))
             }}
             className="rounded border border-[#ddae58] bg-white px-4 py-2 text-sm font-medium text-[#ddae58] hover:bg-[#ddae58]/5 disabled:cursor-not-allowed disabled:opacity-60"
           >

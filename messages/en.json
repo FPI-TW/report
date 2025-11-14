@@ -85,6 +85,10 @@
     "target_key_hint": "Must include a date like YYYY-MM-DD in the filename suffix for correct grouping.",
     "uploading": "Uploading...",
     "upload": "Upload",
+    "toast_file_selected": "File selected. Please confirm the object key before uploading.",
+    "toast_upload_success": "File uploaded successfully and saved to storage.",
+    "toast_upload_error": "Upload failed. Please try again or check the file.",
+    "toast_form_reset": "Form has been reset.",
     "reset_form_button": "Reset form",
     "uploaded": "Uploaded",
     "open": "Open"

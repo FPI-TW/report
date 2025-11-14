@@ -84,6 +84,10 @@
     "target_key_hint": "需在文件名結尾包含 YYYY-MM-DD 以利分組。",
     "uploading": "上传中…",
     "upload": "上传",
+    "toast_file_selected": "已选择文件，请确认对象键后再上传。",
+    "toast_upload_success": "文件上传成功并已保存。",
+    "toast_upload_error": "上传失败，请重试或检查文件。",
+    "toast_form_reset": "表单已重置。",
     "reset_form_button": "重置表单",
     "uploaded": "已上传",
     "open": "打开"
