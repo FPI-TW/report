@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 const schema = z.object({
   category: z.enum([
@@ -46,6 +47,7 @@ export default function UploadPage() {
   const [result, setResult] = useState<{ key: string; url: string } | null>(
     null
   )
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const category = watch("category")
   const filename = watch("filename")
   const fileList = watch("file")
@@ -83,13 +85,21 @@ export default function UploadPage() {
     form.append("file", parsed.data.file)
     if (parsed.data.filename) form.append("filename", parsed.data.filename)
 
-    const resp = await fetch("/api/upload", { method: "POST", body: form })
-    const body = await resp.json().catch(() => ({}))
-    if (!resp.ok || !body?.ok) {
-      throw new Error(body?.message || body?.error || "Upload failed")
+    try {
+      const resp = await fetch("/api/upload", { method: "POST", body: form })
+      const body = await resp.json().catch(() => ({}))
+      if (!resp.ok || !body?.ok) {
+        throw new Error(body?.message || body?.error || "Upload failed")
+      }
+      setResult({ key: body.key, url: body.url })
+      reset({ category: parsed.data.category, filename: "" })
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      toast.success(t("toast_upload_success"))
+    } catch {
+      toast.error(t("toast_upload_error"))
     }
-    setResult({ key: body.key, url: body.url })
-    reset({ category: parsed.data.category, filename: "" })
   }
 
   return (
@@ -125,63 +135,93 @@ export default function UploadPage() {
           <label className="block text-sm font-medium text-gray-800">
             {t("file_label")}
           </label>
+          <div
+            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-xs text-gray-600"
+            onClick={() => {
+              if (fileInputRef.current) {
+                fileInputRef.current.click()
+              }
+            }}
+            onDragOver={e => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            onDrop={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              const f = e.dataTransfer.files?.[0]
+              if (f) {
+                setValue("file", f, { shouldValidate: true })
+                setValue("filename", f.name)
+                if (fileInputRef.current) {
+                  const dt = new DataTransfer()
+                  dt.items.add(f)
+                  fileInputRef.current.files = dt.files
+                }
+                toast.success(t("toast_file_selected"))
+              }
+            }}
+          >
+            {t("file_upload_hint")}
+          </div>
           <input
             type="file"
             accept="application/pdf"
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="hidden"
+            ref={fileInputRef}
             onChange={e => {
               const f = e.target.files?.[0]
               if (f) {
                 setValue("file", f, { shouldValidate: true })
                 setValue("filename", f.name)
+                toast.success(t("toast_file_selected"))
               }
             }}
-            // {...register("file", {
-            //   onChange: e => {
-            //     const list = (e.target as HTMLInputElement).files
-            //     const f = list?.[0]
-            //     if (f) {
-            //       setValue("file", f, { shouldValidate: true })
-            //       setValue("filename", f.name)
-            //     }
-            //   },
-            // })}
           />
           {errors.file && (
             <p className="text-xs text-red-600">
               {errors.file.message as string}
             </p>
           )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-800">
-            {t("filename_label")}
-          </label>
           <input
             type="text"
             placeholder={t("filename_placeholder")}
             className="w-full rounded border px-3 py-2 text-sm"
             {...register("filename")}
           />
-          <p className="text-xs text-gray-600">{t("filename_hint")}</p>
+          <p className="text-xs text-neutral-800">{t("filename_hint")}</p>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-1 pt-2">
           <p className="text-xs text-gray-700">
             {t("target_key")}{" "}
             <span className="font-mono">{derivedKey || t("pending")}</span>
           </p>
-          <p className="text-xs text-gray-500">{t("target_key_hint")}</p>
+          <p className="text-xs text-red-500">{t("target_key_hint")}</p>
         </div>
 
-        <div className="pt-2">
+        <div className="space-x-2 pt-2">
           <button
             type="submit"
             disabled={isSubmitting}
             className="rounded bg-[#ddae58] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? t("uploading") : t("upload")}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              reset()
+              setResult(null)
+              if (fileInputRef.current) {
+                fileInputRef.current.value = ""
+              }
+              toast(t("toast_form_reset"))
+            }}
+            className="rounded border border-[#ddae58] bg-white px-4 py-2 text-sm font-medium text-[#ddae58] hover:bg-[#ddae58]/5 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {t("reset_form_button")}
           </button>
         </div>
 
