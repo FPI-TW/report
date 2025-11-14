@@ -127,7 +127,12 @@ export default function UploadPage() {
             {t("file_label")}
           </label>
           <div
-            className="rounded border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-xs text-gray-600"
+            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-xs text-gray-600"
+            onClick={() => {
+              if (fileInputRef.current) {
+                fileInputRef.current.click()
+              }
+            }}
             onDragOver={e => {
               e.preventDefault()
               e.stopPropagation()
@@ -147,12 +152,12 @@ export default function UploadPage() {
               }
             }}
           >
-            {t("file_drop_hint")}
+            {t("file_upload_hint")}
           </div>
           <input
             type="file"
             accept="application/pdf"
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="hidden"
             ref={fileInputRef}
             onChange={e => {
               const f = e.target.files?.[0]
@@ -167,27 +172,21 @@ export default function UploadPage() {
               {errors.file.message as string}
             </p>
           )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-800">
-            {t("filename_label")}
-          </label>
           <input
             type="text"
             placeholder={t("filename_placeholder")}
             className="w-full rounded border px-3 py-2 text-sm"
             {...register("filename")}
           />
-          <p className="text-xs text-gray-600">{t("filename_hint")}</p>
+          <p className="text-xs text-neutral-800">{t("filename_hint")}</p>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-1 pt-2">
           <p className="text-xs text-gray-700">
             {t("target_key")}{" "}
             <span className="font-mono">{derivedKey || t("pending")}</span>
           </p>
-          <p className="text-xs text-gray-500">{t("target_key_hint")}</p>
+          <p className="text-xs text-red-500">{t("target_key_hint")}</p>
         </div>
 
         <div className="pt-2">
