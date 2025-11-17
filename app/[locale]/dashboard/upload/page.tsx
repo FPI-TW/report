@@ -70,8 +70,6 @@ export default function UploadPage() {
   const derivedKey = derivedName ? `${prefix}${derivedName}` : ""
 
   async function onSubmitRaw(data: FormValues) {
-    // if (!data.file) return
-
     // Validate with zod at runtime (file optional in RHF, required in schema)
     const parsed = schema.safeParse({
       category: data.category,
@@ -80,18 +78,46 @@ export default function UploadPage() {
     })
 
     if (!parsed.success) return
-    const form = new FormData()
-    form.append("category", parsed.data.category)
-    form.append("file", parsed.data.file)
-    if (parsed.data.filename) form.append("filename", parsed.data.filename)
 
     try {
-      const resp = await fetch("/api/upload", { method: "POST", body: form })
-      const body = await resp.json().catch(() => ({}))
-      if (!resp.ok || !body?.ok) {
-        throw new Error(body?.message || body?.error || "Upload failed")
+      const file = parsed.data.file
+      if (!file) return
+
+      const presignResp = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          category: parsed.data.category,
+          filename:
+            parsed.data.filename && parsed.data.filename.trim().length > 0
+              ? parsed.data.filename
+              : file.name,
+          contentType: file.type || "application/octet-stream",
+        }),
+      })
+      const presignBody = await presignResp.json().catch(() => ({}))
+      console.log("presignBody", presignBody)
+      if (!presignResp.ok || !presignBody?.ok || !presignBody.uploadUrl) {
+        throw new Error(
+          presignBody?.message || presignBody?.error || "Upload failed"
+        )
       }
-      setResult({ key: body.key, url: body.url })
+
+      const uploadResp = await fetch(presignBody.uploadUrl as string, {
+        method: "PUT",
+        headers: {
+          "content-type": file.type || "application/octet-stream",
+        },
+        body: file,
+      })
+
+      if (!uploadResp.ok) {
+        throw new Error("Upload failed")
+      }
+
+      setResult({ key: presignBody.key, url: presignBody.url })
       reset({ category: parsed.data.category, filename: "" })
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
@@ -136,7 +162,7 @@ export default function UploadPage() {
             {t("file_label")}
           </label>
           <div
-            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-xs text-gray-600"
+            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-100 px-3 py-10 text-center text-sm font-semibold text-gray-600"
             onClick={() => {
               if (fileInputRef.current) {
                 fileInputRef.current.click()

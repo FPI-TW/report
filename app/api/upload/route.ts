@@ -2,8 +2,14 @@ import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { COOKIE_NAME, verifyJwt } from "@/lib/session"
 import { isSuperUserClaims } from "@/lib/admin"
-import { isAllowedReportKey, getR2Config, makeR2Client } from "@/lib/r2"
+import {
+  buildPublicUrlFromKey,
+  getR2Config,
+  isAllowedReportKey,
+  makeR2Client,
+} from "@/lib/r2"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 type Category = "daily-report" | "weekly-report" | "research-report" | "ai-news"
 
@@ -37,11 +43,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const form = await req.formData()
-    const category = form.get("category") as string | null
-    const file = form.get("file") as File | null
-    const filenameOverride =
-      (form.get("filename") as string | null) || undefined
+    const body = await req.json().catch(() => null)
+    const category = (body?.category as string | undefined) ?? null
+    const filenameOverride = (body?.filename as string | undefined) ?? undefined
+    const contentTypeOverride =
+      (body?.contentType as string | undefined) ?? undefined
 
     if (
       !category ||
@@ -55,14 +61,8 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    if (!file || typeof file.arrayBuffer !== "function") {
-      return new Response(JSON.stringify({ error: "missing_file" }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      })
-    }
-
-    const name = (filenameOverride && filenameOverride.trim()) || file.name
+    const trimmed = filenameOverride?.trim()
+    const name = trimmed && trimmed.length > 0 ? trimmed : null
     if (!name) {
       return new Response(JSON.stringify({ error: "invalid_filename" }), {
         status: 400,
@@ -78,25 +78,27 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const body = Buffer.from(await file.arrayBuffer())
-    const contentType = file.type || "application/octet-stream"
-
     const { bucket, baseUrl } = getR2Config()
     const client = makeR2Client()
-    await client.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-      })
-    )
+    const contentType = contentTypeOverride || "application/octet-stream"
 
-    const url = `${baseUrl}/${key.split("/").map(encodeURIComponent).join("/")}`
-    return new Response(JSON.stringify({ ok: true, key, url }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType,
     })
+
+    const expiresIn = 300
+    const uploadUrl = await getSignedUrl(client, command, { expiresIn })
+    const url = buildPublicUrlFromKey(baseUrl, key)
+
+    return new Response(
+      JSON.stringify({ ok: true, key, url, uploadUrl, expiresIn }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    )
   } catch (err) {
     return new Response(
       JSON.stringify({
