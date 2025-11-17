@@ -162,7 +162,7 @@ export default function UploadPage() {
             {t("file_label")}
           </label>
           <div
-            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-xs text-gray-600"
+            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-100 px-3 py-10 text-center text-sm font-semibold text-gray-600"
             onClick={() => {
               if (fileInputRef.current) {
                 fileInputRef.current.click()
