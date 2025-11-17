@@ -98,10 +98,14 @@ export default function UploadPage() {
         throw new Error(meta?.message || meta?.error || "Upload init failed")
       }
 
-      const uploadResp = await fetch(meta.uploadUrl, {
-        method: "PUT",
-        headers: { "content-type": contentType },
-        body: parsed.data.file,
+      const proxyFormData = new FormData()
+      proxyFormData.append("uploadUrl", meta.uploadUrl)
+      proxyFormData.append("contentType", contentType)
+      proxyFormData.append("file", parsed.data.file)
+
+      const uploadResp = await fetch("/api/upload/proxy", {
+        method: "POST",
+        body: proxyFormData,
       })
 
       if (!uploadResp.ok) {
