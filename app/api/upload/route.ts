@@ -2,14 +2,8 @@ import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { COOKIE_NAME, verifyJwt } from "@/lib/session"
 import { isSuperUserClaims } from "@/lib/admin"
-import {
-  buildPublicUrlFromKey,
-  getR2Config,
-  isAllowedReportKey,
-  makeR2Client,
-} from "@/lib/r2"
+import { isAllowedReportKey, getR2Config, makeR2Client } from "@/lib/r2"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 type Category = "daily-report" | "weekly-report" | "research-report" | "ai-news"
 
@@ -43,21 +37,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    let body: unknown
-    try {
-      body = await req.json()
-    } catch {
-      return new Response(JSON.stringify({ error: "invalid_json" }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      })
-    }
-
-    const { category, filename, contentType } = (body ?? {}) as {
-      category?: string
-      filename?: string
-      contentType?: string
-    }
+    const form = await req.formData()
+    const category = form.get("category") as string | null
+    const file = form.get("file") as File | null
+    const filenameOverride =
+      (form.get("filename") as string | null) || undefined
 
     if (
       !category ||
@@ -71,7 +55,14 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const name = (filename && filename.trim()) || ""
+    if (!file || typeof file.arrayBuffer !== "function") {
+      return new Response(JSON.stringify({ error: "missing_file" }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      })
+    }
+
+    const name = (filenameOverride && filenameOverride.trim()) || file.name
     if (!name) {
       return new Response(JSON.stringify({ error: "invalid_filename" }), {
         status: 400,
@@ -87,23 +78,22 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const uploadContentType =
-      (contentType && contentType.trim()) || "application/octet-stream"
+    const body = Buffer.from(await file.arrayBuffer())
+    const contentType = file.type || "application/octet-stream"
 
     const { bucket, baseUrl } = getR2Config()
     const client = makeR2Client()
-    const uploadUrl = await getSignedUrl(
-      client,
+    await client.send(
       new PutObjectCommand({
         Bucket: bucket,
         Key: key,
-        ContentType: uploadContentType,
-      }),
-      { expiresIn: 60 * 60 }
+        Body: body,
+        ContentType: contentType,
+      })
     )
 
-    const url = buildPublicUrlFromKey(baseUrl, key)
-    return new Response(JSON.stringify({ ok: true, key, url, uploadUrl }), {
+    const url = `${baseUrl}/${key.split("/").map(encodeURIComponent).join("/")}`
+    return new Response(JSON.stringify({ ok: true, key, url }), {
       status: 200,
       headers: { "content-type": "application/json" },
     })
