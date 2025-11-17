@@ -70,8 +70,6 @@ export default function UploadPage() {
   const derivedKey = derivedName ? `${prefix}${derivedName}` : ""
 
   async function onSubmitRaw(data: FormValues) {
-    // if (!data.file) return
-
     // Validate with zod at runtime (file optional in RHF, required in schema)
     const parsed = schema.safeParse({
       category: data.category,
@@ -80,18 +78,37 @@ export default function UploadPage() {
     })
 
     if (!parsed.success) return
-    const form = new FormData()
-    form.append("category", parsed.data.category)
-    form.append("file", parsed.data.file)
-    if (parsed.data.filename) form.append("filename", parsed.data.filename)
+    const filenameToUse =
+      (parsed.data.filename && parsed.data.filename.trim()) ||
+      parsed.data.file.name
+    const contentType = parsed.data.file.type || "application/octet-stream"
 
     try {
-      const resp = await fetch("/api/upload", { method: "POST", body: form })
-      const body = await resp.json().catch(() => ({}))
-      if (!resp.ok || !body?.ok) {
-        throw new Error(body?.message || body?.error || "Upload failed")
+      const resp = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          category: parsed.data.category,
+          filename: filenameToUse,
+          contentType,
+        }),
+      })
+      const meta = await resp.json().catch(() => ({}))
+      if (!resp.ok || !meta?.ok || !meta?.uploadUrl) {
+        throw new Error(meta?.message || meta?.error || "Upload init failed")
       }
-      setResult({ key: body.key, url: body.url })
+
+      const uploadResp = await fetch(meta.uploadUrl, {
+        method: "PUT",
+        headers: { "content-type": contentType },
+        body: parsed.data.file,
+      })
+
+      if (!uploadResp.ok) {
+        throw new Error("Upload failed")
+      }
+
+      setResult({ key: meta.key, url: meta.url })
       reset({ category: parsed.data.category, filename: "" })
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
