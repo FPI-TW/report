@@ -9,6 +9,9 @@ import useDialog from "@/hooks/useDialog"
 
 import { Document, Page, pdfjs } from "react-pdf"
 
+import "react-pdf/dist/Page/AnnotationLayer.css"
+import "react-pdf/dist/Page/TextLayer.css"
+
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.93/pdf.worker.min.mjs"
@@ -121,7 +124,7 @@ export default function PdfItem({ item, name }: Props) {
                         <Page
                           pageNumber={1}
                           width={800}
-                          renderTextLayer={false}
+                          renderTextLayer
                           renderAnnotationLayer={false}
                         />
                       </Document>
