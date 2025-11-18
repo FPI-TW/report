@@ -65,21 +65,22 @@ export default function PdfItem({ item, name }: Props) {
     <>
       <article
         className="flex cursor-pointer flex-col items-center justify-between space-y-1.5 transition-all hover:-translate-y-0.5"
-        style={{ borderColor: "rgba(221, 174, 88, 0.35)" }}
         onClick={handleClick}
       >
         <Image
           src="/icon/pdf.svg"
           alt="PDF"
-          width={64}
-          height={64}
+          width={75}
+          height={92}
           className="opacity-80"
+          style={{
+            height: "auto",
+            width: "64px",
+          }}
         />
-        <div className="h-full">
-          <h4 className="text-center text-base font-medium break-all whitespace-normal text-gray-900 sm:text-lg">
-            {displayName}
-          </h4>
-        </div>
+        <h4 className="text-center text-base font-medium break-all whitespace-normal text-gray-900 sm:text-lg">
+          {displayName}
+        </h4>
       </article>
 
       <AnimatePresence>

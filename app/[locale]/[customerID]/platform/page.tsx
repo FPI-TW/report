@@ -1,17 +1,17 @@
 "use client"
 
-function monthLabel(m: number) {
-  return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
-}
-
+import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
-import PdfItem from "./components/pdf-item"
 import Tabs from "./components/tabs"
 import { queryReportByType, type ReportType } from "./lib/query-report-by-type"
 import WarningAlert from "./components/warningAlert"
 import { cn } from "@/lib/utils"
+
+const PdfItem = dynamic(() => import("./components/pdf-item"), {
+  ssr: false,
+})
 
 type ApiReport = { key: string; date: string; url: string }
 type ApiGroup = { year: number; month: number; items: ApiReport[] }
@@ -25,6 +25,10 @@ type ApiResponse = {
 
 const BRAND = "#ddae58" as const
 const months = 2 as const
+
+function monthLabel(m: number) {
+  return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
+}
 
 export default function DashboardPage() {
   const [page, setPage] = useState(1)
