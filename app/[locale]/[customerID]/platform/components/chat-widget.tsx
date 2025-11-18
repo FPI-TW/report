@@ -1,63 +1,24 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-
-type Position = {
-  x: number
-  y: number
-}
+import { motion } from "motion/react"
 
 export default function ChatWidget() {
-  const [isDragging, setIsDragging] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-
-  const dragOffsetRef = useRef<Position>({ x: 0, y: 0 })
-  const { position, setPosition } = useInitialPosition()
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!isDragging) return
-
-      const nextX = event.clientX - dragOffsetRef.current.x
-      const nextY = event.clientY - dragOffsetRef.current.y
-
-      const maxX = window.innerWidth - 64
-      const maxY = window.innerHeight - 64
-
-      setPosition({
-        x: Math.min(Math.max(0, nextX), maxX),
-        y: Math.min(Math.max(0, nextY), maxY),
-      })
-    }
-
-    const handleMouseUp = () => {
-      if (isDragging) {
-        setIsDragging(false)
-      }
-    }
-
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove)
-      window.addEventListener("mouseup", handleMouseUp)
-    }
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
-    }
-  }, [isDragging, setPosition])
-
-  const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    dragOffsetRef.current = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    }
-    setIsDragging(true)
-  }
+  const hasDraggedRef = useRef(false)
+  const constraints = useDragConstraints()
 
   return (
-    <div className="fixed z-40" style={{ left: position.x, top: position.y }}>
+    <motion.div
+      className="fixed right-6 bottom-6 z-40"
+      drag
+      dragMomentum={false}
+      dragElastic={0}
+      onDrag={() => {
+        hasDraggedRef.current = true
+      }}
+      dragConstraints={constraints}
+    >
       <div className="relative flex flex-col items-end gap-2">
         {isOpen && (
           <div className="bg-background absolute right-0 bottom-16 w-80 rounded-lg border shadow-lg">
@@ -106,9 +67,12 @@ export default function ChatWidget() {
         <button
           type="button"
           className="bg-background hover:bg-muted flex h-12 w-12 cursor-move items-center justify-center rounded-full border shadow-lg"
-          onMouseDown={handleMouseDown}
           onClick={event => {
             event.stopPropagation()
+            if (hasDraggedRef.current) {
+              hasDraggedRef.current = false
+              return
+            }
             setIsOpen(open => !open)
           }}
         >
@@ -129,23 +93,42 @@ export default function ChatWidget() {
           </svg>
         </button>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
-function useInitialPosition() {
-  const [position, setPosition] = useState<Position>({ x: 24, y: 24 })
+const margin = 16 as const
+const size = 64 as const
+function useDragConstraints() {
+  const [constraints, setConstraints] = useState({
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  })
+
   useEffect(() => {
-    if (typeof window === "undefined") return
+    function updateConstraints() {
+      if (typeof window === "undefined") return
 
-    const margin = 24
-    const size = 64
+      const maxX = window.innerWidth - margin - size
+      const maxY = window.innerHeight - margin - size
 
-    setPosition({
-      x: Math.max(margin, window.innerWidth - margin - size),
-      y: Math.max(margin, window.innerHeight - margin - size),
-    })
+      setConstraints({
+        top: -maxY,
+        left: -maxX,
+        right: 0,
+        bottom: 0,
+      })
+    }
+
+    updateConstraints()
+    window.addEventListener("resize", updateConstraints)
+
+    return () => {
+      window.removeEventListener("resize", updateConstraints)
+    }
   }, [])
 
-  return { position, setPosition }
+  return constraints
 }
