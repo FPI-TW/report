@@ -8,23 +8,11 @@ type Position = {
 }
 
 export default function ChatWidget() {
-  const [position, setPosition] = useState<Position>({ x: 24, y: 24 })
   const [isDragging, setIsDragging] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
   const dragOffsetRef = useRef<Position>({ x: 0, y: 0 })
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-
-    const margin = 24
-    const size = 64
-
-    setPosition({
-      x: Math.max(margin, window.innerWidth - margin - size),
-      y: Math.max(margin, window.innerHeight - margin - size),
-    })
-  }, [])
+  const { position, setPosition } = useInitialPosition()
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -57,9 +45,9 @@ export default function ChatWidget() {
       window.removeEventListener("mousemove", handleMouseMove)
       window.removeEventListener("mouseup", handleMouseUp)
     }
-  }, [isDragging])
+  }, [isDragging, setPosition])
 
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect()
     dragOffsetRef.current = {
       x: event.clientX - rect.left,
@@ -70,12 +58,9 @@ export default function ChatWidget() {
 
   return (
     <div className="fixed z-40" style={{ left: position.x, top: position.y }}>
-      <div
-        className="flex cursor-move flex-col items-end gap-2"
-        onMouseDown={handleMouseDown}
-      >
+      <div className="relative flex flex-col items-end gap-2">
         {isOpen && (
-          <div className="bg-background w-80 rounded-lg border shadow-lg">
+          <div className="bg-background absolute right-0 bottom-16 w-80 rounded-lg border shadow-lg">
             <header className="flex items-center justify-between border-b px-3 py-2">
               <div className="text-sm font-medium">AI Assistant</div>
               <button
@@ -120,7 +105,8 @@ export default function ChatWidget() {
 
         <button
           type="button"
-          className="bg-background hover:bg-muted flex h-12 w-12 items-center justify-center rounded-full border shadow-lg"
+          className="bg-background hover:bg-muted flex h-12 w-12 cursor-move items-center justify-center rounded-full border shadow-lg"
+          onMouseDown={handleMouseDown}
           onClick={event => {
             event.stopPropagation()
             setIsOpen(open => !open)
@@ -145,4 +131,21 @@ export default function ChatWidget() {
       </div>
     </div>
   )
+}
+
+function useInitialPosition() {
+  const [position, setPosition] = useState<Position>({ x: 24, y: 24 })
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const margin = 24
+    const size = 64
+
+    setPosition({
+      x: Math.max(margin, window.innerWidth - margin - size),
+      y: Math.max(margin, window.innerHeight - margin - size),
+    })
+  }, [])
+
+  return { position, setPosition }
 }
