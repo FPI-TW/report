@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
@@ -31,6 +31,16 @@ export default function PdfItem({ item, name }: Props) {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [numPages, setNumPages] = useState<number | null>(null)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [pdfHeight, setPdfHeight] = useState(0)
+
+  const pdfContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (pdfContainerRef.current) {
+      setPdfHeight(pdfContainerRef.current.clientHeight * 0.95)
+    }
+  }, [viewerUrl])
 
   const handleClick = async () => {
     if (isLoading) return
@@ -88,23 +98,68 @@ export default function PdfItem({ item, name }: Props) {
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 260, damping: 30 }}
               >
-                <header className="flex items-center justify-between border-b px-4 py-3">
-                  <h2 className="text-sm font-medium sm:text-base">
-                    {displayName}
-                  </h2>
-                  <h2>Pages {numPages}</h2>
-                  <button
-                    type="button"
-                    onClick={pdfModal.close}
-                    className="bg-background text-foreground hover:bg-accent inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm"
-                  >
-                    <span>Close</span>
-                  </button>
+                <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate text-sm font-medium sm:text-base">
+                      {displayName}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    {numPages && numPages > 0 && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPageNumber(prev => Math.max(1, prev - 1))
+                          }
+                          disabled={pageNumber <= 1}
+                          className="hover:bg-accent inline-flex h-7 items-center rounded border px-2 disabled:opacity-50"
+                        >
+                          ‹
+                        </button>
+                        <span className="whitespace-nowrap">
+                          {pageNumber} / {numPages}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPageNumber(prev =>
+                              numPages ? Math.min(numPages, prev + 1) : prev
+                            )
+                          }
+                          disabled={!numPages || pageNumber >= numPages}
+                          className="hover:bg-accent inline-flex h-7 items-center rounded border px-2 disabled:opacity-50"
+                        >
+                          ›
+                        </button>
+                      </div>
+                    )}
+                    {viewerUrl && (
+                      <a
+                        href={viewerUrl}
+                        download={displayName || "document.pdf"}
+                        rel="noopener noreferrer"
+                        className="hover:bg-accent inline-flex h-7 items-center rounded border px-2"
+                      >
+                        Download
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={pdfModal.close}
+                      className="bg-background text-foreground hover:bg-accent inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm"
+                    >
+                      <span>Close</span>
+                    </button>
+                  </div>
                 </header>
 
-                <div className="bg-muted/40 flex-1 overflow-auto">
-                  {viewerUrl ? (
-                    <div className="flex h-full w-full items-center justify-center p-2">
+                <div
+                  ref={pdfContainerRef}
+                  className="bg-muted/40 flex-1 overflow-auto"
+                >
+                  {viewerUrl && pdfHeight > 0 ? (
+                    <div className="flex h-full w-full items-center justify-center py-8">
                       <Document
                         file={viewerUrl}
                         loading={
@@ -118,12 +173,12 @@ export default function PdfItem({ item, name }: Props) {
                           </div>
                         }
                         onLoadSuccess={({ numPages: loadedNumPages }) =>
-                          setNumPages(loadedNumPages)
+                          setNumPages(loadedNumPages ?? 0)
                         }
                       >
                         <Page
-                          pageNumber={1}
-                          width={800}
+                          pageNumber={pageNumber}
+                          height={pdfHeight}
                           renderTextLayer
                           renderAnnotationLayer={false}
                         />
