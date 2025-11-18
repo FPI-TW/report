@@ -7,6 +7,13 @@ import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "motion/react"
 import useDialog from "@/hooks/useDialog"
 
+import { Document, Page, pdfjs } from "react-pdf"
+
+if (typeof window !== "undefined") {
+  pdfjs.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.93/pdf.worker.min.mjs"
+}
+
 export type PdfSource = { key: string; date: string; url: string }
 
 type Props = {
@@ -20,6 +27,7 @@ export default function PdfItem({ item, name }: Props) {
   const pdfModal = useDialog()
   const [viewerUrl, setViewerUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [numPages, setNumPages] = useState<number | null>(null)
 
   const handleClick = async () => {
     if (isLoading) return
@@ -81,6 +89,7 @@ export default function PdfItem({ item, name }: Props) {
                   <h2 className="text-sm font-medium sm:text-base">
                     {displayName}
                   </h2>
+                  <h2>Pages {numPages}</h2>
                   <button
                     type="button"
                     onClick={pdfModal.close}
@@ -90,13 +99,33 @@ export default function PdfItem({ item, name }: Props) {
                   </button>
                 </header>
 
-                <div className="bg-muted/40 flex-1">
+                <div className="bg-muted/40 flex-1 overflow-auto">
                   {viewerUrl ? (
-                    <iframe
-                      src={viewerUrl}
-                      title={displayName}
-                      className="h-full w-full"
-                    />
+                    <div className="flex h-full w-full items-center justify-center p-2">
+                      <Document
+                        file={viewerUrl}
+                        loading={
+                          <div className="text-muted-foreground text-xs">
+                            Loading PDF…
+                          </div>
+                        }
+                        error={
+                          <div className="text-destructive text-xs">
+                            {t("error")}
+                          </div>
+                        }
+                        onLoadSuccess={({ numPages: loadedNumPages }) =>
+                          setNumPages(loadedNumPages)
+                        }
+                      >
+                        <Page
+                          pageNumber={1}
+                          width={800}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      </Document>
+                    </div>
                   ) : (
                     <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
                       {isLoading ? "Loading…" : "No file to display."}
