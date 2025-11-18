@@ -25,7 +25,11 @@ export async function GET(req: NextRequest) {
   try {
     const { bucket } = getR2Config()
     const client = makeR2Client()
-    const cmd = new GetObjectCommand({ Bucket: bucket, Key: key })
+    const cmd = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ResponseContentDisposition: "attachment",
+    })
     const url = await getSignedUrl(client, cmd, { expiresIn: 300 })
     return new Response(JSON.stringify({ url }), {
       status: 200,
