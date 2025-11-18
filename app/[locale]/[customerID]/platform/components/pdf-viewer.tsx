@@ -83,7 +83,6 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
                 onClick={() => setPageSafely(pageNumber - 1)}
                 disabled={pageNumber <= 1}
                 className="h-7 rounded px-2"
-                // className="inline-flex h-7 items-center rounded border px-2 disabled:opacity-50"
               >
                 ‹
               </Button>
