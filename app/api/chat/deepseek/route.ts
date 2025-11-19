@@ -72,9 +72,8 @@ export async function POST(req: NextRequest) {
         try {
           const completion = await openai.chat.completions.create({
             model: "deepseek-chat",
-            response_format: { type: "json_object" },
             stream: true,
-            messages: messages,
+            messages,
           })
 
           for await (const chunk of completion) {

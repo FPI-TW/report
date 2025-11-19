@@ -173,9 +173,6 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
     const content = text.trim()
     if (!content || isSending) return
 
-    const controller = new AbortController()
-    setAbortController(controller)
-
     const userMessage: ChatMessage = {
       id: Date.now(),
       message: content,
@@ -194,7 +191,7 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
 
     const history = [...messages, userMessage]
 
-    // Show user + empty assistant message to stream into
+    // Show user + empty assistant message to fill later
     setMessages([...history, assistantMessage])
     setInput("")
 
@@ -202,27 +199,29 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
       lockedScrollTopRef.current = messageListRef.current.scrollTop
     }
 
+    const controller = new AbortController()
+    setAbortController(controller)
     setIsSending(true)
-    try {
-      const body = {
-        reportType,
-        reportDate,
-        messages: history
-          .filter(item => item.role !== "system")
-          .map(item => ({
-            role: item.role === "user" ? "user" : ("assistant" as const),
-            content: item.message,
-          })),
-        stream: true,
-      }
 
+    let receivedAnyChunk = false
+
+    try {
       const response = await fetch("/api/chat/deepseek", {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
         signal: controller.signal,
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          reportType,
+          reportDate,
+          messages: history
+            .filter(item => item.role !== "system")
+            .map(item => ({
+              role: item.role,
+              content: item.message,
+            })),
+        }),
       })
 
       if (!response.ok) {
@@ -243,30 +242,53 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
         const chunk = decoder.decode(value, { stream: true })
         if (!chunk) continue
 
-        setMessages(prev =>
-          prev.map(message =>
+        receivedAnyChunk = true
+
+        setMessages(prev => {
+          const existing = prev.find(m => m.id === assistantMessage.id)
+          if (!existing) {
+            return [
+              ...prev,
+              {
+                ...assistantMessage,
+                message: chunk,
+              },
+            ]
+          }
+          return prev.map(message =>
             message.id === assistantMessage.id
               ? { ...message, message: message.message + chunk }
               : message
           )
-        )
+        })
       }
 
-      // If the assistant message stayed empty, show a fallback
-      setMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessage.id && !message.message.trim()
-            ? {
-                ...message,
-                message: "Sorry, DeepSeek did not return any content.",
-              }
-            : message
-        )
-      )
-    } catch (error) {
-      if ((error as Error).name === "AbortError") {
+      if (!receivedAnyChunk) {
         setMessages(prev =>
           prev.map(message =>
+            message.id === assistantMessage.id && !message.message.trim()
+              ? {
+                  ...message,
+                  message: "Sorry, DeepSeek did not return any content.",
+                }
+              : message
+          )
+        )
+      }
+    } catch (error) {
+      if ((error as Error).name === "AbortError") {
+        setMessages(prev => {
+          const existing = prev.find(m => m.id === assistantMessage.id)
+          if (!existing) {
+            return [
+              ...prev,
+              {
+                ...assistantMessage,
+                message: "Generation stopped.",
+              },
+            ]
+          }
+          return prev.map(message =>
             message.id === assistantMessage.id && !message.message.trim()
               ? {
                   ...message,
@@ -274,7 +296,7 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
                 }
               : message
           )
-        )
+        })
       } else {
         setMessages(prev => [
           ...prev,
