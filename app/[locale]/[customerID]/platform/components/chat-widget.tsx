@@ -1,5 +1,12 @@
 "use client"
 
+import {
+  ChatContainer,
+  MainContainer,
+  Message,
+  MessageInput,
+  MessageList,
+} from "@chatscope/chat-ui-kit-react"
 import { useEffect, useRef, useState } from "react"
 import { motion } from "motion/react"
 
@@ -21,47 +28,12 @@ export default function ChatWidget() {
     >
       <div className="relative flex flex-col items-end gap-2">
         {isOpen && (
-          <div className="bg-background absolute right-0 bottom-16 w-80 rounded-lg border shadow-lg">
-            <header className="flex items-center justify-between border-b px-3 py-2">
-              <div className="text-sm font-medium">AI Assistant</div>
-              <button
-                type="button"
-                className="text-muted-foreground hover:bg-muted rounded px-1 text-xs"
-                onClick={event => {
-                  event.stopPropagation()
-                  setIsOpen(false)
-                }}
-              >
-                ✕
-              </button>
-            </header>
-            <div className="text-muted-foreground flex max-h-80 flex-col px-3 py-2 text-xs">
-              <div className="mb-2 text-[11px]">
-                Chat with an AI assistant about this report. (API not connected
-                yet.)
-              </div>
-              <div className="bg-muted/40 flex-1 rounded border p-2">
-                <div className="text-muted-foreground text-[11px]">
-                  Messages will appear here.
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 border-t px-3 py-2">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="h-7 flex-1 rounded border px-2 text-xs"
-                disabled
-              />
-              <button
-                type="button"
-                className="bg-primary text-primary-foreground h-7 rounded px-2 text-xs opacity-60"
-                disabled
-              >
-                Send
-              </button>
-            </div>
-          </div>
+          <ChatWindow
+            onClose={event => {
+              event.stopPropagation()
+              setIsOpen(false)
+            }}
+          />
         )}
 
         <button
@@ -131,4 +103,73 @@ function useDragConstraints() {
   }, [])
 
   return constraints
+}
+
+type ChatWindowProps = {
+  onClose: (event: React.MouseEvent<HTMLButtonElement>) => void
+}
+
+function ChatWindow({ onClose }: ChatWindowProps) {
+  const [messages] = useState([
+    {
+      id: 1,
+      message: "Hi! Ask anything about this report.",
+      sender: "Assistant",
+      direction: "incoming" as const,
+    },
+    {
+      id: 2,
+      message: "Chat API is not connected yet.",
+      sender: "System",
+      direction: "incoming" as const,
+    },
+  ])
+
+  return (
+    <div className="bg-background absolute right-0 bottom-16 w-80 overflow-hidden rounded-lg border shadow-lg">
+      <header className="flex items-center justify-between border-b px-3 py-2">
+        <div className="text-sm font-medium">AI Assistant</div>
+        <button
+          type="button"
+          className="text-muted-foreground hover:bg-muted rounded px-1 text-xs"
+          onClick={onClose}
+        >
+          ✕
+        </button>
+      </header>
+      <div className="h-80 text-xs">
+        <MainContainer
+          style={{
+            height: "100%",
+            borderRadius: 0,
+            background: "transparent",
+          }}
+        >
+          <ChatContainer>
+            <MessageList
+              style={{
+                padding: "0.5rem",
+              }}
+            >
+              {messages.map(item => (
+                <Message
+                  key={item.id}
+                  model={{
+                    message: item.message,
+                    position: "single",
+                    sender: item.sender,
+                    direction: item.direction,
+                  }}
+                />
+              ))}
+            </MessageList>
+            <MessageInput
+              placeholder="Type a message... (coming soon)"
+              // disabled
+            />
+          </ChatContainer>
+        </MainContainer>
+      </div>
+    </div>
+  )
 }

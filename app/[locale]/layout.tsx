@@ -1,13 +1,19 @@
+// Next features
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import "../globals.css"
-import Provider from "./provider"
 import {
   getLocale,
   getMessages,
   getTimeZone,
   setRequestLocale,
 } from "next-intl/server"
+
+// Style
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css"
+import "../globals.css"
+
+// Provider or Component
+import Provider from "./provider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
