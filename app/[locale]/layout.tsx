@@ -9,7 +9,6 @@ import {
 } from "next-intl/server"
 
 // Style
-import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css"
 import "../globals.css"
 
 // Provider or Component
