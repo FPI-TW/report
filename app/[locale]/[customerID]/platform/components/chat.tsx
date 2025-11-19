@@ -314,24 +314,21 @@ function ChatWindow({ onClose }: ChatWindowProps) {
   }, [messages, isSending])
 
   return (
-    <div className="bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,22rem)] overflow-hidden rounded-lg border shadow-lg sm:bottom-16">
+    <div className="bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,32rem)] overflow-hidden rounded-lg border shadow-lg sm:bottom-16">
       <header className="flex items-center justify-between border-b px-3 py-2">
         <div className="flex flex-col gap-0.5">
-          <div className="text-xs font-semibold sm:text-sm">AI Assistant</div>
-          <div className="text-muted-foreground text-[10px] sm:text-[11px]">
-            Ask anything about this report.
-          </div>
+          <div className="text-sm font-semibold sm:text-base">AI Assistant</div>
         </div>
         <button
           type="button"
-          className="text-muted-foreground hover:bg-muted rounded px-1 text-xs"
+          className="text-muted-foreground hover:bg-muted rounded-full px-2 py-1 text-xs"
           onClick={onClose}
         >
           ✕
         </button>
       </header>
 
-      <div className="h-80 text-xs sm:text-[11px]">
+      <div className="h-[min(450px,50vh)] text-xs md:text-sm">
         <div className="relative flex h-full flex-col">
           <div
             ref={messageListRef}
@@ -348,7 +345,7 @@ function ChatWindow({ onClose }: ChatWindowProps) {
                 }`}
               >
                 <div
-                  className={`max-w-[80%] rounded-md border px-2 py-1 text-[11px] leading-relaxed sm:text-xs ${
+                  className={`max-w-[80%] rounded-md border px-2 py-1 leading-relaxed ${
                     message.direction === "outgoing"
                       ? "bg-primary text-primary-foreground border-primary/60"
                       : "bg-muted/60 text-foreground border-border"
@@ -370,37 +367,35 @@ function ChatWindow({ onClose }: ChatWindowProps) {
             </button>
           )}
 
-          <div className="border-t px-2 py-2">
-            <div className="flex items-end gap-2">
-              <textarea
-                rows={1}
-                className="bg-background focus-visible:ring-ring max-h-24 flex-1 resize-none rounded border px-2 py-1 text-xs outline-none focus-visible:ring-1 sm:text-[11px]"
-                placeholder="Type a message..."
-                value={input}
-                onChange={event => setInput(event.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isSending && !abortController}
-              />
+          <div className="flex h-12 items-center justify-center gap-2 border-t px-2 py-2">
+            <textarea
+              rows={1}
+              className="bg-background focus-visible:ring-ring size-full resize-none rounded border px-2 py-1 text-sm outline-none focus-visible:ring-1"
+              placeholder="Type a message..."
+              value={input}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSending && !abortController}
+            />
 
-              {isSending && abortController ? (
-                <Button
-                  variant="outline"
-                  className="h-7 rounded px-3 text-xs"
-                  onClick={handleStop}
-                >
-                  Stop
-                </Button>
-              ) : (
-                <Button
-                  variant="default"
-                  className="h-7 rounded px-3 text-xs disabled:opacity-20"
-                  onClick={() => void handleSend()}
-                  disabled={!input.trim() || isSending}
-                >
-                  Send
-                </Button>
-              )}
-            </div>
+            {isSending && abortController ? (
+              <Button
+                variant="outline"
+                className="h-full rounded px-3 text-xs"
+                onClick={handleStop}
+              >
+                Stop
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="h-full rounded px-3 text-xs disabled:opacity-20"
+                onClick={() => void handleSend()}
+                disabled={!input.trim() || isSending}
+              >
+                Send
+              </Button>
+            )}
           </div>
         </div>
       </div>
