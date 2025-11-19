@@ -326,6 +326,12 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    const isComposing =
+      (event as unknown as { nativeEvent?: { isComposing?: boolean } })
+        .nativeEvent?.isComposing || event.key === "Process"
+
+    if (isComposing) return
+
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       void handleSend()
@@ -379,7 +385,18 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
                       : "bg-muted/60 text-foreground border-border"
                   }`}
                 >
-                  {message.message}
+                  {message.role === "assistant" &&
+                  !message.message.trim() &&
+                  isSending ? (
+                    <span className="flex items-center gap-1">
+                      <span className="sr-only">Loading response</span>
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current delay-150" />
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current delay-300" />
+                    </span>
+                  ) : (
+                    message.message
+                  )}
                 </div>
               </div>
             ))}
