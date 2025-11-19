@@ -264,6 +264,8 @@ function ChatWindow({ onClose }: ChatWindowProps) {
               style={{
                 padding: "0.5rem",
               }}
+              autoScrollToBottom={false}
+              autoScrollToBottomOnMount={false}
             >
               {messages.map(item => (
                 <Message
