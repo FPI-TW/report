@@ -171,11 +171,6 @@ function ChatWindow({ onClose }: ChatWindowProps) {
     const content = text.trim()
     if (!content || isSending) return
 
-    // Cancel any ongoing generation
-    if (abortController) {
-      abortController.abort()
-    }
-
     const controller = new AbortController()
     setAbortController(controller)
 
