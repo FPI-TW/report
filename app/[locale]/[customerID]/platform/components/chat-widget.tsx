@@ -7,6 +7,7 @@ import {
   MessageInput,
   MessageList,
 } from "@chatscope/chat-ui-kit-react"
+import type { MouseEvent } from "react"
 import { useEffect, useRef, useState } from "react"
 import { motion } from "motion/react"
 
@@ -106,24 +107,108 @@ function useDragConstraints() {
 }
 
 type ChatWindowProps = {
-  onClose: (event: React.MouseEvent<HTMLButtonElement>) => void
+  onClose: (event: MouseEvent<HTMLButtonElement>) => void
+}
+
+type ChatMessageRole = "user" | "assistant" | "system"
+
+type ChatMessage = {
+  id: number
+  message: string
+  sender: string
+  direction: "incoming" | "outgoing"
+  role: ChatMessageRole
 }
 
 function ChatWindow({ onClose }: ChatWindowProps) {
-  const [messages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
       message: "Hi! Ask anything about this report.",
       sender: "Assistant",
       direction: "incoming" as const,
+      role: "assistant",
     },
     {
       id: 2,
-      message: "Chat API is not connected yet.",
+      message: "I use DeepSeek to answer your questions.",
       sender: "System",
       direction: "incoming" as const,
+      role: "system",
     },
   ])
+  const [isSending, setIsSending] = useState(false)
+
+  async function handleSend(text: string) {
+    const content = text.trim()
+    if (!content || isSending) return
+
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      message: content,
+      sender: "You",
+      direction: "outgoing" as const,
+      role: "user" as const,
+    }
+
+    const nextMessages = [...messages, userMessage]
+    setMessages(nextMessages)
+
+    setIsSending(true)
+    try {
+      const response = await fetch("/api/chat/deepseek", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: nextMessages
+            .filter(item => item.role !== "system")
+            .map(item => ({
+              role: item.role === "user" ? "user" : ("assistant" as const),
+              content: item.message,
+            })),
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Request failed")
+      }
+
+      const data = (await response.json().catch(() => null)) as {
+        message?: string
+      } | null
+
+      const reply = (data?.message ?? "Sorry, I could not understand.")?.trim()
+
+      if (reply) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            message: reply,
+            sender: "Assistant",
+            direction: "incoming" as const,
+            role: "assistant",
+          },
+        ])
+      }
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now() + 2,
+          message:
+            "There was a problem talking to DeepSeek. Please try again later.",
+          sender: "System",
+          direction: "incoming" as const,
+          role: "system",
+        },
+      ])
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   return (
     <div className="bg-background absolute right-0 bottom-16 w-80 overflow-hidden rounded-lg border shadow-lg">
@@ -164,8 +249,9 @@ function ChatWindow({ onClose }: ChatWindowProps) {
               ))}
             </MessageList>
             <MessageInput
-              placeholder="Type a message... (coming soon)"
-              // disabled
+              placeholder="Type a message..."
+              onSend={handleSend}
+              disabled={isSending}
             />
           </ChatContainer>
         </MainContainer>
