@@ -15,7 +15,12 @@ type ChatMessage = {
   role: ChatMessageRole
 }
 
-export default function Chat() {
+type ChatProps = {
+  reportType?: string
+  reportDate?: string
+}
+
+export default function Chat({ reportType, reportDate }: ChatProps) {
   const [isOpen, setIsOpen] = useState(false)
   const hasDraggedRef = useRef(false)
   const constraints = useDragConstraints()
@@ -41,6 +46,8 @@ export default function Chat() {
               event.stopPropagation()
               setIsOpen(false)
             }}
+            reportType={reportType}
+            reportDate={reportDate}
           />
         )}
 
@@ -119,9 +126,11 @@ function useDragConstraints() {
 
 type ChatWindowProps = {
   onClose: (event: MouseEvent<HTMLButtonElement>) => void
+  reportType?: string | undefined
+  reportDate?: string | undefined
 }
 
-function ChatWindow({ onClose }: ChatWindowProps) {
+function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
   const messageListRef = useRef<HTMLDivElement | null>(null)
   const lockedScrollTopRef = useRef<number | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -131,13 +140,6 @@ function ChatWindow({ onClose }: ChatWindowProps) {
       sender: "Assistant",
       direction: "incoming",
       role: "assistant",
-    },
-    {
-      id: 2,
-      message: "I use DeepSeek to answer your questions.",
-      sender: "System",
-      direction: "incoming",
-      role: "system",
     },
   ])
   const [input, setInput] = useState("")
@@ -202,21 +204,25 @@ function ChatWindow({ onClose }: ChatWindowProps) {
 
     setIsSending(true)
     try {
+      const body = {
+        reportType,
+        reportDate,
+        messages: history
+          .filter(item => item.role !== "system")
+          .map(item => ({
+            role: item.role === "user" ? "user" : ("assistant" as const),
+            content: item.message,
+          })),
+        stream: true,
+      }
+
       const response = await fetch("/api/chat/deepseek", {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
         signal: controller.signal,
-        body: JSON.stringify({
-          messages: history
-            .filter(item => item.role !== "system")
-            .map(item => ({
-              role: item.role === "user" ? "user" : ("assistant" as const),
-              content: item.message,
-            })),
-          stream: true,
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {

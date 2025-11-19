@@ -1,14 +1,19 @@
 import { NextRequest } from "next/server"
 import OpenAI from "openai"
+import { cookies } from "next/headers"
+
+import { defaultLocale } from "@/proxy/language"
+import { BASIC_PROMPT, PARAMS_PROMPT } from "./constant"
 
 type ChatRequestMessage = {
-  role: "user" | "assistant"
+  role: "user" | "assistant" | "system"
   content: string
 }
 
 type ChatRequestBody = {
+  reportType?: string
+  reportDate?: string
   messages?: ChatRequestMessage[]
-  stream?: boolean
 }
 
 const apiUrl = "https://api.deepseek.com/v1"
@@ -36,8 +41,30 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Streaming mode (plain text chunks)
-  if (body.stream) {
+  // Locale and report metadata will be threaded into prompts laterconst cookieStore = await cookies()
+  const cookieStore = await cookies()
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || defaultLocale
+  const reportType = body?.reportType || "daily report"
+  const reportDate = body?.reportDate || new Date().toISOString().split("T")[0]
+
+  const system_prompt =
+    BASIC_PROMPT +
+    `Local: ${locale}` +
+    PARAMS_PROMPT +
+    `${reportType ? `Report Type: ${reportType}` : ""}, Report Date: ${reportDate ? reportDate : ""}`
+
+  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+    ...body.messages.map(m => ({
+      role: m.role,
+      content: m.content,
+    })),
+    {
+      role: "system",
+      content: system_prompt,
+    },
+  ]
+
+  try {
     const encoder = new TextEncoder()
 
     const stream = new ReadableStream({
@@ -45,11 +72,9 @@ export async function POST(req: NextRequest) {
         try {
           const completion = await openai.chat.completions.create({
             model: "deepseek-chat",
+            response_format: { type: "json_object" },
             stream: true,
-            messages: body.messages!.map(message => ({
-              role: message.role,
-              content: message.content,
-            })),
+            messages: messages,
           })
 
           for await (const chunk of completion) {
@@ -71,25 +96,6 @@ export async function POST(req: NextRequest) {
         "content-type": "text/plain; charset=utf-8",
         "cache-control": "no-cache",
       },
-    })
-  }
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "deepseek-chat",
-      messages: body.messages.map(message => ({
-        role: message.role,
-        content: message.content,
-      })),
-    })
-
-    const replyText =
-      completion.choices[0]?.message?.content ??
-      "DeepSeek did not return any content."
-
-    return new Response(JSON.stringify({ message: replyText }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
     })
   } catch (error) {
     console.log("Deepseek api error", error)
