@@ -11,7 +11,7 @@ import {
 } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
 import { Button } from "@/components/ui/button"
-import ChatWidget from "./chat-widget"
+import Chat from "./chat"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -72,7 +72,7 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
-        <ChatWidget />
+        <Chat />
         <div className="w-60">
           <h2 className="truncate text-sm font-medium sm:text-base">{title}</h2>
         </div>
