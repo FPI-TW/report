@@ -12,6 +12,7 @@ import {
 import { Document, Page, pdfjs } from "react-pdf"
 import { Button } from "@/components/ui/button"
 import Chat from "./chat"
+import type { ReportType } from "../lib/query-report-by-type"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -22,10 +23,19 @@ type Props = {
   url: string
   title: string
   errorLabel: string
+  reportType: ReportType
+  reportDate: string
   onClose: () => void
 }
 
-export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
+export default function PdfViewer({
+  url,
+  title,
+  errorLabel,
+  reportType,
+  reportDate,
+  onClose,
+}: Props) {
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
@@ -72,9 +82,17 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
+        {/* Fixed Chat */}
         <Chat />
-        <div className="w-60">
+
+        {/* Main Content */}
+        <div className="flex w-120 flex-col gap-0.5">
           <h2 className="truncate text-sm font-medium sm:text-base">{title}</h2>
+          <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] sm:text-xs">
+            <span>{reportDate}</span>
+            <span className="text-gray-400">·</span>
+            <span>{reportType}</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-1">
@@ -123,7 +141,7 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
           )}
         </div>
 
-        <div className="flex w-60 items-center justify-end gap-2 text-xs">
+        <div className="flex w-120 items-center justify-end gap-2 text-xs">
           {url && (
             <a
               href={url}

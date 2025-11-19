@@ -7,15 +7,17 @@ import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "motion/react"
 import useDialog from "@/hooks/useDialog"
 import PdfViewer from "./pdf-viewer"
+import type { ReportType } from "../lib/query-report-by-type"
 
 export type PdfSource = { key: string; date: string; url: string }
 
 type Props = {
   item: PdfSource
   name?: string | undefined
+  reportType: ReportType
 }
 
-export default function PdfItem({ item, name }: Props) {
+export default function PdfItem({ item, name, reportType }: Props) {
   const t = useTranslations("dashboard")
   const displayName = name ?? item.date
   const pdfModal = useDialog()
@@ -84,6 +86,8 @@ export default function PdfItem({ item, name }: Props) {
                     url={viewerUrl}
                     title={displayName}
                     errorLabel={t("error")}
+                    reportType={reportType}
+                    reportDate={item.date}
                     onClose={pdfModal.close}
                   />
                 ) : (
