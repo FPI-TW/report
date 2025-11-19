@@ -279,6 +279,7 @@ function ChatWindow({ onClose }: ChatWindowProps) {
             </MessageList>
             <MessageInput
               placeholder="Type a message..."
+              attachButton={false}
               onSend={handleSend}
               disabled={isSending}
             />
