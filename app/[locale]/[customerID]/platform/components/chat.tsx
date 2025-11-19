@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent, MouseEvent, UIEvent } from "react"
 import { useEffect, useRef, useState } from "react"
-import { motion } from "motion/react"
+import { motion, useDragControls } from "motion/react"
 import { Button } from "@/components/ui/button"
 
 type ChatMessageRole = "user" | "assistant" | "system"
@@ -19,11 +19,14 @@ export default function Chat() {
   const [isOpen, setIsOpen] = useState(false)
   const hasDraggedRef = useRef(false)
   const constraints = useDragConstraints()
+  const dragControls = useDragControls()
 
   return (
     <motion.div
       className="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6"
       drag
+      dragControls={dragControls}
+      dragListener={false}
       dragMomentum={false}
       dragElastic={0}
       onDrag={() => {
@@ -44,6 +47,10 @@ export default function Chat() {
         <button
           type="button"
           className="bg-background hover:bg-muted flex h-11 w-11 cursor-move items-center justify-center rounded-full border shadow-lg sm:h-12 sm:w-12"
+          onPointerDown={event => {
+            event.preventDefault()
+            dragControls.start(event)
+          }}
           onClick={event => {
             event.stopPropagation()
             if (hasDraggedRef.current) {
