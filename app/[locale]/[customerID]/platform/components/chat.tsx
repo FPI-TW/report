@@ -373,7 +373,7 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
                 }`}
               >
                 <div
-                  className={`max-w-[80%] rounded-md border px-2 py-1 leading-relaxed ${
+                  className={`max-w-[80%] rounded-md border px-2 py-1 leading-relaxed whitespace-pre-wrap ${
                     message.direction === "outgoing"
                       ? "bg-primary text-primary-foreground border-primary/60"
                       : "bg-muted/60 text-foreground border-border"

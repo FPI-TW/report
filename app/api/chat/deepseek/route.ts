@@ -3,7 +3,7 @@ import OpenAI from "openai"
 import { cookies } from "next/headers"
 
 import { defaultLocale } from "@/proxy/language"
-import { BASIC_PROMPT, PARAMS_PROMPT } from "./constant"
+import { BASIC_PROMPT, PARAMS_PROMPT, RESPONSE_HINT } from "./constant"
 
 type ChatRequestMessage = {
   role: "user" | "assistant" | "system"
@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
     BASIC_PROMPT +
     `Local: ${locale}` +
     PARAMS_PROMPT +
-    `${reportType ? `Report Type: ${reportType}` : ""}, Report Date: ${reportDate ? reportDate : ""}`
+    `${reportType ? `Report Type: ${reportType}` : ""}, Report Date: ${reportDate ? reportDate : ""}` +
+    RESPONSE_HINT
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     ...body.messages.map(m => ({

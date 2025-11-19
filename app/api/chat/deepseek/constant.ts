@@ -4,3 +4,6 @@ export const BASIC_PROMPT =
 export const PARAMS_PROMPT =
   "reportType(如果未提供，設為daily report), reportDate(如果未提供，設為今天的日期，格式為YYYY-MM-DD)。"
 // 'reportType(如果未提供，設為daily report), reportDate(如果未提供，設為今天的日期，格式為YYYY-MM-DD)。回覆格式為 JSON，只回傳 JSON 內容，格式為 {session_id: "string", metaData: {"reportType": "string", "reportDate": "string", "language": "string"}, response: {role: string, content: string}}，所有字段都必須是字符串類型。'
+
+export const RESPONSE_HINT =
+  "不要備注任何訊息或是免責聲明，除了我指定的內容，我會在客戶端統一增加備注跟聲明。"
