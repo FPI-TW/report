@@ -98,7 +98,7 @@ export default function UploadPage() {
         }),
       })
       const presignBody = await presignResp.json().catch(() => ({}))
-      console.log("presignBody", presignBody)
+
       if (!presignResp.ok || !presignBody?.ok || !presignBody.uploadUrl) {
         throw new Error(
           presignBody?.message || presignBody?.error || "Upload failed"
