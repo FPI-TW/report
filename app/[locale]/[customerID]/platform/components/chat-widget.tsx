@@ -151,8 +151,19 @@ function ChatWindow({ onClose }: ChatWindowProps) {
       role: "user" as const,
     }
 
-    const nextMessages = [...messages, userMessage]
-    setMessages(nextMessages)
+    const assistantMessage: ChatMessage = {
+      id: Date.now() + 1,
+      message: "",
+      sender: "Assistant",
+      direction: "incoming",
+      role: "assistant",
+    }
+
+    // Conversation history sent to the API (exclude system messages)
+    const history = [...messages, userMessage]
+
+    // Optimistically show user + empty assistant message to stream into
+    setMessages([...history, assistantMessage])
 
     setIsSending(true)
     try {
@@ -162,12 +173,13 @@ function ChatWindow({ onClose }: ChatWindowProps) {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          messages: nextMessages
+          messages: history
             .filter(item => item.role !== "system")
             .map(item => ({
               role: item.role === "user" ? "user" : ("assistant" as const),
               content: item.message,
             })),
+          stream: true,
         }),
       })
 
@@ -175,24 +187,41 @@ function ChatWindow({ onClose }: ChatWindowProps) {
         throw new Error("Request failed")
       }
 
-      const data = (await response.json().catch(() => null)) as {
-        message?: string
-      } | null
-
-      const reply = (data?.message ?? "Sorry, I could not understand.")?.trim()
-
-      if (reply) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            message: reply,
-            sender: "Assistant",
-            direction: "incoming" as const,
-            role: "assistant",
-          },
-        ])
+      if (!response.body) {
+        throw new Error("No response body")
       }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+
+      // Read and append chunks to the assistant message as they arrive
+      for (;;) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        if (!chunk) continue
+
+        setMessages(prev =>
+          prev.map(message =>
+            message.id === assistantMessage.id
+              ? { ...message, message: message.message + chunk }
+              : message
+          )
+        )
+      }
+
+      // If the assistant message stayed empty, show a fallback
+      setMessages(prev =>
+        prev.map(message =>
+          message.id === assistantMessage.id && !message.message.trim()
+            ? {
+                ...message,
+                message: "Sorry, DeepSeek did not return any content.",
+              }
+            : message
+        )
+      )
     } catch {
       setMessages(prev => [
         ...prev,

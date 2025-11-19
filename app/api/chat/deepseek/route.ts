@@ -75,7 +75,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    console.log("Calling DeepSeek API with messages:", body)
     const completion = await openai.chat.completions.create({
       model: "deepseek-chat",
       messages: body.messages.map(message => ({
