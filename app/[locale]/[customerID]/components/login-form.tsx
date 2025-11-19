@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { useLocale, useTranslations } from "next-intl"
+import { AuthApi } from "@/lib/api"
 
 type LoginValues = {
   account: string
@@ -51,16 +52,12 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       return
     }
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        customerID,
-        account: values.account,
-        password: values.password,
-      }),
+    const { response } = await AuthApi.login({
+      customerID,
+      account: values.account,
+      password: values.password,
     })
-    if (!res.ok) {
+    if (!response.ok) {
       const msg = t("invalid_credentials")
       setServerError(msg)
       toast.error(msg)

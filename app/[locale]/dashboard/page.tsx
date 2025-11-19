@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { AuthApi } from "@/lib/api"
 
 const schema = z.object({
   account: z.string().min(1, "Required"),
@@ -24,22 +25,19 @@ export default function DashboardLoginPage() {
   const params = useParams() as { locale?: string }
   const locale = params?.locale || ""
 
-  async function onSubmit(data: Values) {
+  async function onSubmit(formValues: Values) {
     setError(null)
-    const parsed = schema.safeParse(data)
+    const parsed = schema.safeParse(formValues)
     if (!parsed.success) return
-    const resp = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        customerID: "tingfong",
-        account: parsed.data.account,
-        password: parsed.data.password,
-      }),
+    const { response, data } = await AuthApi.login({
+      customerID: "tingfong",
+      account: parsed.data.account,
+      password: parsed.data.password,
     })
-    const body = await resp.json().catch(() => ({}))
-    if (!resp.ok || !body?.ok) {
-      setError(body?.error || "Login failed")
+    if (!response.ok || !data?.ok) {
+      const message =
+        !data.ok && "error" in data && data.error ? data.error : "Login failed"
+      setError(message)
       return
     }
     router.replace(`/${locale}/dashboard/upload`)

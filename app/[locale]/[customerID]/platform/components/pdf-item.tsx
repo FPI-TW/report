@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "motion/react"
 import useDialog from "@/hooks/useDialog"
 import PdfViewer from "./pdf-viewer"
 import type { ReportType } from "../lib/query-report-by-type"
+import { ReportsApi } from "@/lib/api"
 
 export type PdfSource = { key: string; date: string; url: string }
 
@@ -28,12 +29,10 @@ export default function PdfItem({ item, name, reportType }: Props) {
     if (isLoading) return
     setIsLoading(true)
     try {
-      const res = await fetch(
-        `/api/reports/url?key=${encodeURIComponent(item.key)}`,
-        { cache: "no-store" }
-      )
-      if (!res.ok) throw new Error("sign_failed")
-      const data: { url: string } = await res.json()
+      const { response, data } = await ReportsApi.fetchReportUrl(item.key)
+      if (!response.ok || !("url" in data)) {
+        throw new Error("sign_failed")
+      }
       setViewerUrl(data.url)
       pdfModal.open()
     } catch {
