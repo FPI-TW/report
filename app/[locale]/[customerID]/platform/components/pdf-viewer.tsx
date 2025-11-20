@@ -49,6 +49,7 @@ export default function PdfViewer({
   onClose,
 }: Props) {
   const t = useTranslations("pdf_viewer")
+  const t_dashboard = useTranslations("dashboard")
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
@@ -147,7 +148,7 @@ export default function PdfViewer({
           <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] sm:text-xs">
             <span>{reportDate}</span>
             <span className="text-gray-400">·</span>
-            <span>{reportType}</span>
+            <span>{t_dashboard(reportType)}</span>
           </div>
         </div>
 
