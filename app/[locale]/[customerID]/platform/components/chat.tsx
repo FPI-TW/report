@@ -123,7 +123,6 @@ function ChatWindow({
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
   const hasSentAiInsightsRef = useRef(false)
-
   const { chatHightlight } = useChat()
 
   function handleMessageListScroll(event: UIEvent<HTMLDivElement>) {
@@ -303,7 +302,7 @@ function ChatWindow({
   )
 
   useEffect(() => {
-    if (!chatHightlight.text || hasSentAiInsightsRef.current) return
+    if (!chatHightlight.text) return
 
     const content = chatHightlight.text.trim()
     if (!content) {
@@ -311,11 +310,30 @@ function ChatWindow({
       return
     }
 
-    hasSentAiInsightsRef.current = true
-    setInput(content)
-    void handleSend(content)
-    chatHightlight.clear()
-  }, [chatHightlight, handleSend])
+    if (chatHightlight.featureType === "ai-insights") {
+      if (hasSentAiInsightsRef.current) return
+
+      hasSentAiInsightsRef.current = true
+      setInput(content)
+      void handleSend(content)
+      chatHightlight.clear()
+      return
+    }
+
+    if (chatHightlight.featureType === "deep-query") {
+      setInput(prev =>
+        prev && prev.trim().length > 0
+          ? `${content}\n\n${prev}`
+          : `${content}\n\n`
+      )
+      chatHightlight.clear()
+    }
+  }, [
+    chatHightlight,
+    chatHightlight.text,
+    chatHightlight.featureType,
+    handleSend,
+  ])
 
   function handleStop() {
     if (!abortController) return

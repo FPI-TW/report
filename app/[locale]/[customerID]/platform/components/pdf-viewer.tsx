@@ -111,6 +111,24 @@ export default function PdfViewer({
     chatWindow.open()
   }
 
+  const handleDeepQuery = () => {
+    if (typeof window === "undefined") return
+
+    const selection = window.getSelection()
+    const selectedText = selection?.toString().trim() ?? ""
+
+    if (!selectedText) {
+      toast("Please highlight some text in the report first.")
+      return
+    }
+
+    chatHightlight.set({
+      text: selectedText,
+      feature: "deep-query",
+    })
+    chatWindow.open()
+  }
+
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
@@ -246,7 +264,9 @@ export default function PdfViewer({
                     <ContextMenuItem onSelect={handleAiInsights}>
                       AI Insights
                     </ContextMenuItem>
-                    <ContextMenuItem>Deep query</ContextMenuItem>
+                    <ContextMenuItem onSelect={handleDeepQuery}>
+                      Deep query
+                    </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
               </div>
