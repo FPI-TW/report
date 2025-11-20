@@ -27,8 +27,6 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
   const hasDraggedRef = useRef(false)
   const dragControls = useDragControls()
 
-  console.log("chat isOpen:", chatWindow.isOpen)
-
   return (
     <motion.div
       className="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6"

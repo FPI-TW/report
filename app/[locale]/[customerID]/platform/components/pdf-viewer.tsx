@@ -220,7 +220,6 @@ export default function PdfViewer({
                 }
 
                 const text = await parsePdfTextFromUrl(url)
-                console.log("success", text.length)
                 setPdfText(text)
               }}
             >

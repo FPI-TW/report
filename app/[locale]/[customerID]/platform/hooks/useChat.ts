@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { create } from "zustand"
-// import { useHighlightStore } from "./useHighlightStore"
 
 export default function useChat() {
   const dragConstraints = useDragConstraints()
