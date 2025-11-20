@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
   const system_prompt =
     BASIC_PROMPT +
-    `Local: ${locale}` +
+    `Language: ${locale}` +
     PARAMS_PROMPT +
     `${reportType ? `Report Type: ${reportType}` : ""}, Report Date: ${reportDate ? reportDate : ""}` +
     RESPONSE_HINT
