@@ -218,7 +218,9 @@ export default function PdfViewer({
                     </div>
                   </ContextMenuTrigger>
                   <ContextMenuContent>
-                    <ContextMenuLabel>AI features</ContextMenuLabel>
+                    <ContextMenuLabel className="text-sm font-semibold tracking-wide">
+                      AI features
+                    </ContextMenuLabel>
                     <ContextMenuSeparator />
                     <ContextMenuItem>AI Insights</ContextMenuItem>
                     <ContextMenuItem>Deep query</ContextMenuItem>
