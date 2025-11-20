@@ -66,7 +66,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
               return
             }
 
-            chatWindow.open()
+            chatWindow.toggle()
           }}
         >
           <span className="sr-only">Open chat</span>
