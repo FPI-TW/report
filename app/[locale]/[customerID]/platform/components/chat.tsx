@@ -1,9 +1,10 @@
 "use client"
 
 import type { KeyboardEvent, MouseEvent, UIEvent } from "react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useDragControls } from "motion/react"
 import { Button } from "@/components/ui/button"
+import { useHighlightStore } from "../hooks/useHighlightStore"
 
 type ChatMessageRole = "user" | "assistant" | "system"
 
@@ -26,6 +27,12 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
   const hasDraggedRef = useRef(false)
   const constraints = useDragConstraints()
   const dragControls = useDragControls()
+  const { feature, text: highlightText, clearHighlight } = useHighlightStore()
+
+  useEffect(() => {
+    if (!highlightText.trim() || feature !== "ai-insights") return
+    setIsOpen(true)
+  }, [feature, highlightText])
 
   return (
     <motion.div
@@ -50,6 +57,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
             reportType={reportType}
             reportDate={reportDate}
             pdfText={pdfText}
+            onAiInsightsConsumed={clearHighlight}
           />
         )}
 
@@ -131,6 +139,7 @@ type ChatWindowProps = {
   reportType?: string | undefined
   reportDate?: string | undefined
   pdfText: string
+  onAiInsightsConsumed?: () => void
 }
 
 function ChatWindow({
@@ -138,6 +147,7 @@ function ChatWindow({
   reportType,
   reportDate,
   pdfText,
+  onAiInsightsConsumed,
 }: ChatWindowProps) {
   const messageListRef = useRef<HTMLDivElement | null>(null)
   const lockedScrollTopRef = useRef<number | null>(null)
@@ -155,6 +165,8 @@ function ChatWindow({
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
+  const hasSentAiInsightsRef = useRef(false)
+  const { text: highlightText } = useHighlightStore()
 
   function handleMessageListScroll(event: UIEvent<HTMLDivElement>) {
     const target = event.currentTarget
@@ -175,159 +187,176 @@ function ChatWindow({
       behavior: "smooth",
     })
   }
+  const handleSend = useCallback(
+    async (rawText?: string) => {
+      const text = rawText ?? input
+      const content = text.trim()
+      if (!content || isSending) return
 
-  async function handleSend(rawText?: string) {
-    const text = rawText ?? input
-    const content = text.trim()
-    if (!content || isSending) return
-
-    const userMessage: ChatMessage = {
-      id: Date.now(),
-      message: content,
-      sender: "You",
-      direction: "outgoing",
-      role: "user",
-    }
-
-    const assistantMessage: ChatMessage = {
-      id: Date.now() + 1,
-      message: "",
-      sender: "Assistant",
-      direction: "incoming",
-      role: "assistant",
-    }
-
-    const history = [...messages, userMessage]
-
-    // Show user + empty assistant message to fill later
-    setMessages([...history, assistantMessage])
-    setInput("")
-
-    if (messageListRef.current) {
-      lockedScrollTopRef.current = messageListRef.current.scrollTop
-    }
-
-    const controller = new AbortController()
-    setAbortController(controller)
-    setIsSending(true)
-
-    let receivedAnyChunk = false
-
-    try {
-      const response = await fetch("/api/chat/deepseek", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        signal: controller.signal,
-        body: JSON.stringify({
-          reportType,
-          reportDate,
-          pdfText,
-          messages: history
-            .filter(item => item.role !== "system")
-            .map(item => ({
-              role: item.role,
-              content: item.message,
-            })),
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Request failed")
+      const userMessage: ChatMessage = {
+        id: Date.now(),
+        message: content,
+        sender: "You",
+        direction: "outgoing",
+        role: "user",
       }
 
-      if (!response.body) {
-        throw new Error("No response body")
+      const assistantMessage: ChatMessage = {
+        id: Date.now() + 1,
+        message: "",
+        sender: "Assistant",
+        direction: "incoming",
+        role: "assistant",
       }
 
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
+      const history = [...messages, userMessage]
 
-      for (;;) {
-        const { value, done } = await reader.read()
-        if (done) break
+      // Show user + empty assistant message to fill later
+      setMessages([...history, assistantMessage])
+      setInput("")
 
-        const chunk = decoder.decode(value, { stream: true })
-        if (!chunk) continue
-
-        receivedAnyChunk = true
-
-        setMessages(prev => {
-          const existing = prev.find(m => m.id === assistantMessage.id)
-          if (!existing) {
-            return [
-              ...prev,
-              {
-                ...assistantMessage,
-                message: chunk,
-              },
-            ]
-          }
-          return prev.map(message =>
-            message.id === assistantMessage.id
-              ? { ...message, message: message.message + chunk }
-              : message
-          )
-        })
+      if (messageListRef.current) {
+        lockedScrollTopRef.current = messageListRef.current.scrollTop
       }
 
-      if (!receivedAnyChunk) {
-        setMessages(prev =>
-          prev.map(message =>
-            message.id === assistantMessage.id && !message.message.trim()
-              ? {
-                  ...message,
-                  message: "Sorry, DeepSeek did not return any content.",
-                }
-              : message
-          )
-        )
-      }
-    } catch (error) {
-      if ((error as Error).name === "AbortError") {
-        setMessages(prev => {
-          const existing = prev.find(m => m.id === assistantMessage.id)
-          if (!existing) {
-            return [
-              ...prev,
-              {
-                ...assistantMessage,
-                message: "Generation stopped.",
-              },
-            ]
-          }
-          return prev.map(message =>
-            message.id === assistantMessage.id && !message.message.trim()
-              ? {
-                  ...message,
-                  message: "Generation stopped.",
-                }
-              : message
-          )
-        })
-      } else {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now() + 2,
-            message:
-              "There was a problem talking to DeepSeek. Please try again later.",
-            sender: "System",
-            direction: "incoming",
-            role: "system",
+      const controller = new AbortController()
+      setAbortController(controller)
+      setIsSending(true)
+
+      let receivedAnyChunk = false
+
+      try {
+        const response = await fetch("/api/chat/deepseek", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
           },
-        ])
+          signal: controller.signal,
+          body: JSON.stringify({
+            reportType,
+            reportDate,
+            pdfText,
+            messages: history
+              .filter(item => item.role !== "system")
+              .map(item => ({
+                role: item.role,
+                content: item.message,
+              })),
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error("Request failed")
+        }
+
+        if (!response.body) {
+          throw new Error("No response body")
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+
+        for (;;) {
+          const { value, done } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          if (!chunk) continue
+
+          receivedAnyChunk = true
+
+          setMessages(prev => {
+            const existing = prev.find(m => m.id === assistantMessage.id)
+            if (!existing) {
+              return [
+                ...prev,
+                {
+                  ...assistantMessage,
+                  message: chunk,
+                },
+              ]
+            }
+            return prev.map(message =>
+              message.id === assistantMessage.id
+                ? { ...message, message: message.message + chunk }
+                : message
+            )
+          })
+        }
+
+        if (!receivedAnyChunk) {
+          setMessages(prev =>
+            prev.map(message =>
+              message.id === assistantMessage.id && !message.message.trim()
+                ? {
+                    ...message,
+                    message: "Sorry, DeepSeek did not return any content.",
+                  }
+                : message
+            )
+          )
+        }
+      } catch (error) {
+        if ((error as Error).name === "AbortError") {
+          setMessages(prev => {
+            const existing = prev.find(m => m.id === assistantMessage.id)
+            if (!existing) {
+              return [
+                ...prev,
+                {
+                  ...assistantMessage,
+                  message: "Generation stopped.",
+                },
+              ]
+            }
+            return prev.map(message =>
+              message.id === assistantMessage.id && !message.message.trim()
+                ? {
+                    ...message,
+                    message: "Generation stopped.",
+                  }
+                : message
+            )
+          })
+        } else {
+          setMessages(prev => [
+            ...prev,
+            {
+              id: Date.now() + 2,
+              message:
+                "There was a problem talking to DeepSeek. Please try again later.",
+              sender: "System",
+              direction: "incoming",
+              role: "system",
+            },
+          ])
+        }
+      } finally {
+        setIsSending(false)
+        setAbortController(null)
       }
-    } finally {
-      setIsSending(false)
-      setAbortController(null)
+
+      if (messageListRef.current) {
+        lockedScrollTopRef.current = messageListRef.current.scrollTop
+      }
+    },
+    [input, isSending, messages, pdfText, reportDate, reportType]
+  )
+
+  useEffect(() => {
+    if (!highlightText || hasSentAiInsightsRef.current) return
+
+    const content = highlightText.trim()
+    if (!content) {
+      onAiInsightsConsumed?.()
+      return
     }
 
-    if (messageListRef.current) {
-      lockedScrollTopRef.current = messageListRef.current.scrollTop
-    }
-  }
+    hasSentAiInsightsRef.current = true
+    setInput(content)
+    void handleSend(content)
+    onAiInsightsConsumed?.()
+  }, [highlightText, handleSend, onAiInsightsConsumed])
 
   function handleStop() {
     if (!abortController) return

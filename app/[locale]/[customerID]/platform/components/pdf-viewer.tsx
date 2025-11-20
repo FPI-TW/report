@@ -10,6 +10,7 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
   ContextMenu,
@@ -22,6 +23,7 @@ import {
 import Chat from "./chat"
 import type { ReportType } from "../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../lib/parse-pdf-text"
+import { useHighlightStore } from "../hooks/useHighlightStore"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -53,6 +55,7 @@ export default function PdfViewer({
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const lastScrollTimeRef = useRef(0)
+  const setHighlight = useHighlightStore(state => state.setHighlight)
 
   useEffect(() => {
     if (pdfContainerRef.current) {
@@ -87,6 +90,23 @@ export default function PdfViewer({
       setPageSafely(pageNumber - 1)
       lastScrollTimeRef.current = now
     }
+  }
+
+  const handleAiInsights = () => {
+    if (typeof window === "undefined") return
+
+    const selection = window.getSelection()
+    const selectedText = selection?.toString().trim() ?? ""
+
+    if (!selectedText) {
+      toast("Please highlight some text in the report first.")
+      return
+    }
+
+    setHighlight({
+      text: selectedText,
+      feature: "ai-insights",
+    })
   }
 
   return (
@@ -218,11 +238,13 @@ export default function PdfViewer({
                     </div>
                   </ContextMenuTrigger>
                   <ContextMenuContent>
-                    <ContextMenuLabel className="text-sm font-semibold tracking-wide">
-                      AI features
+                    <ContextMenuLabel className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                      AI tools
                     </ContextMenuLabel>
                     <ContextMenuSeparator />
-                    <ContextMenuItem>AI Insights</ContextMenuItem>
+                    <ContextMenuItem onSelect={handleAiInsights}>
+                      AI Insights
+                    </ContextMenuItem>
                     <ContextMenuItem>Deep query</ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
