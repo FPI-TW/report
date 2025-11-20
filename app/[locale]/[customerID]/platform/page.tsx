@@ -8,6 +8,9 @@ import Tabs from "./components/tabs"
 import { queryReportByType, type ReportType } from "./lib/query-report-by-type"
 import WarningAlert from "./components/warningAlert"
 import { cn } from "@/lib/utils"
+import SettingsDialog from "./components/settings-dialog"
+import useDialog from "@/hooks/useDialog"
+import { Button } from "@/components/ui/button"
 
 const PdfItem = dynamic(() => import("./components/pdf-item"), {
   ssr: false,
@@ -34,6 +37,7 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1)
   const [type, setType] = useState<ReportType>("daily-report")
   const t = useTranslations("dashboard")
+  const settingsDialog = useDialog()
   const isLongName = type === "research-report" || type === "ai-news"
   const titleKeyMap: Record<ReportType, string> = {
     "daily-report": "daily_title",
@@ -59,6 +63,12 @@ export default function DashboardPage() {
       <div className="relative grow overflow-y-auto p-8">
         <WarningAlert />
 
+        {/* Preferences */}
+        <SettingsDialog
+          isOpen={settingsDialog.isOpen}
+          onClose={settingsDialog.close}
+        />
+
         {/* subtle brand-tinted background */}
         <div
           aria-hidden
@@ -68,8 +78,9 @@ export default function DashboardPage() {
               "radial-gradient(1000px circle at 15% 0%, rgba(221, 174, 88, 0.12), transparent 70%), radial-gradient(900px circle at 85% 30%, rgba(221, 174, 88, 0.06), transparent 75%)",
           }}
         />
+
         {/* Top tabs above title */}
-        <div className="relative mb-6">
+        <div className="relative mb-6 flex items-center justify-between">
           <Tabs
             value={type}
             onChange={v => {
@@ -77,6 +88,15 @@ export default function DashboardPage() {
               setPage(1)
             }}
           />
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={settingsDialog.open}
+            className="px-4"
+          >
+            {t("settings")}
+          </Button>
         </div>
 
         <div className="relative mb-6 space-y-4">

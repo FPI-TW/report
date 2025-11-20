@@ -22,7 +22,7 @@ export default function Tabs({ value, onChange }: TabsProps) {
   ]
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-1 flex-wrap items-center gap-3">
       {OPTIONS.map(opt => {
         const active = value === opt.value
         return (
