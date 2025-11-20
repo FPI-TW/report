@@ -12,6 +12,7 @@ import {
 import { Document, Page, pdfjs } from "react-pdf"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { useTranslations } from "next-intl"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -47,6 +48,8 @@ export default function PdfViewer({
   reportDate,
   onClose,
 }: Props) {
+  const t = useTranslations("pdf_viewer")
+  const t_dashboard = useTranslations("dashboard")
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
@@ -100,7 +103,7 @@ export default function PdfViewer({
     const selectedText = selection?.toString().trim() ?? ""
 
     if (!selectedText) {
-      toast("Please highlight some text in the report first.")
+      toast(t("select_text"))
       return
     }
 
@@ -118,7 +121,7 @@ export default function PdfViewer({
     const selectedText = selection?.toString().trim() ?? ""
 
     if (!selectedText) {
-      toast("Please highlight some text in the report first.")
+      toast(t("select_text"))
       return
     }
 
@@ -145,7 +148,7 @@ export default function PdfViewer({
           <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] sm:text-xs">
             <span>{reportDate}</span>
             <span className="text-gray-400">·</span>
-            <span>{reportType}</span>
+            <span>{t_dashboard(reportType)}</span>
           </div>
         </div>
 
@@ -203,7 +206,7 @@ export default function PdfViewer({
               rel="noopener noreferrer"
             >
               <Button variant="link" className="h-7 rounded">
-                Download
+                {t("download")}
               </Button>
             </a>
           )}
@@ -216,7 +219,7 @@ export default function PdfViewer({
             }}
             className="h-7 rounded px-2"
           >
-            Close
+            {t("close")}
           </Button>
         </div>
       </header>
@@ -228,7 +231,7 @@ export default function PdfViewer({
               file={url}
               loading={
                 <div className="text-muted-foreground text-xs">
-                  Loading PDF…
+                  {t("loading_pdf")}
                 </div>
               }
               error={
@@ -262,14 +265,14 @@ export default function PdfViewer({
                   </ContextMenuTrigger>
                   <ContextMenuContent>
                     <ContextMenuLabel className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                      AI tools
+                      {t("context_title")}
                     </ContextMenuLabel>
                     <ContextMenuSeparator />
                     <ContextMenuItem onSelect={handleAiInsights}>
-                      AI Insights
+                      {t("ai_insights")}
                     </ContextMenuItem>
                     <ContextMenuItem onSelect={handleDeepQuery}>
-                      Deep query
+                      {t("deep_query")}
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
@@ -278,7 +281,7 @@ export default function PdfViewer({
           </div>
         ) : (
           <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
-            No file to display.
+            {t("no_file")}
           </div>
         )}
       </div>

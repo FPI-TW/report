@@ -49,7 +49,38 @@
     "research_description": "廷豐金融科技以專業視角，深入剖析金融市場，持續提出獨到見解。我們結合產業經驗與創新科技，為客戶帶來具價值的市場洞察。本專題報告區將分享我們對金融市場的觀察與分析，助您掌握先機",
     "tab_ai_news": "AI 重訊",
     "ai_news_title": "AI 重訊",
-    "ai_news_description": "隨著人工智慧在各個領域中扮演越來越重要的角色，掌握其動態變得至關重要。廷豐金融科技將每日為您提供AI重訊報告，幫助您掌握人工智慧的最新趨勢與突破，助您在這個數位時代中保持領先。"
+    "ai_news_description": "隨著人工智慧在各個領域中扮演越來越重要的角色，掌握其動態變得至關重要。廷豐金融科技將每日為您提供AI重訊報告，幫助您掌握人工智慧的最新趨勢與突破，助您在這個數位時代中保持領先。",
+    "daily-report": "每日晨報",
+    "weekly-report": "策略雙週報",
+    "research-report": "專題報告",
+    "ai-news-report": "AI 重訊"
+  },
+  "chat": {
+    "open_chat": "開啟聊天",
+    "welcome": "嗨！隨時都可以針對這份報告提問。",
+    "title": "AI 助理",
+    "close_chat": "關閉聊天",
+    "loading_response": "載入回覆",
+    "no_content": "抱歉，DeepSeek 沒有回傳內容。",
+    "generation_stopped": "已停止產生。",
+    "api_error": "DeepSeek 連線有問題，請稍後再試。",
+    "scroll_to_latest": "回到最新訊息",
+    "attached_title": "深度研究（針對此段內容提問）",
+    "remove_attached": "移除附加參考",
+    "placeholder": "針對報告提問...",
+    "stop": "停止",
+    "send": "送出",
+    "reference": "參考："
+  },
+  "pdf_viewer": {
+    "select_text": "請先反白報告中的文字。",
+    "download": "下載",
+    "close": "關閉",
+    "loading_pdf": "載入 PDF…",
+    "no_file": "沒有檔案可顯示。",
+    "context_title": "AI 工具",
+    "ai_insights": "AI 洞察",
+    "deep_query": "深度提問"
   },
   "customer": {
     "background_alt": "背景"

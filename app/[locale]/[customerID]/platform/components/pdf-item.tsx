@@ -20,7 +20,7 @@ type Props = {
 
 export default function PdfItem({ item, name, reportType }: Props) {
   const t = useTranslations("dashboard")
-  const displayName = name ?? item.date
+  const displayName = name ? name.replace(/\.pdf$/i, "") : item.date
   const pdfModal = useDialog()
   const [viewerUrl, setViewerUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
