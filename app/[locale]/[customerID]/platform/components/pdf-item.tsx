@@ -53,11 +53,7 @@ export default function PdfItem({ item, name, reportType }: Props) {
           alt="PDF"
           width={75}
           height={92}
-          className="opacity-80"
-          style={{
-            height: "auto",
-            width: "64px",
-          }}
+          className="h-auto w-16 opacity-80"
         />
         <h4 className="text-center text-base font-medium break-all whitespace-normal text-gray-900 sm:text-lg">
           {displayName}

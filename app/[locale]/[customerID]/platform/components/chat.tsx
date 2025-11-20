@@ -188,6 +188,8 @@ function ChatWindow({
       let receivedAnyChunk = false
 
       try {
+        setAttachedText("")
+
         const response = await fetch("/api/chat/deepseek", {
           method: "POST",
           headers: {
@@ -368,7 +370,7 @@ function ChatWindow({
   }, [messages, isSending])
 
   return (
-    <div className="bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,32rem)] overflow-hidden rounded-lg border shadow-lg sm:bottom-16">
+    <div className="bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,36rem)] overflow-hidden rounded-lg border shadow-lg sm:bottom-16">
       <header className="flex items-center justify-between border-b px-3 py-2">
         <div className="flex flex-col gap-0.5">
           <div className="text-sm font-semibold sm:text-base">AI Assistant</div>
@@ -399,10 +401,10 @@ function ChatWindow({
                 }`}
               >
                 <div
-                  className={`max-w-[80%] rounded-md border px-2 py-1 leading-relaxed whitespace-pre-wrap ${
+                  className={`max-w-[85%] rounded-md border px-2 py-1 leading-relaxed whitespace-pre-wrap ${
                     message.direction === "outgoing"
-                      ? "bg-primary text-primary-foreground border-primary/60"
-                      : "bg-muted/60 text-foreground border-border"
+                      ? "bg-muted/60 text-foreground border-border"
+                      : "bg-muted/60 text-foreground border-primary/20"
                   }`}
                 >
                   {message.role === "assistant" &&
