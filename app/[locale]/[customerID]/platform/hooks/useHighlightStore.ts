@@ -2,26 +2,29 @@
 
 import { create } from "zustand"
 
-type HighlightFeature = "ai-insights" | "deep-query"
+export type HighlightFeatureType = "ai-insights" | "deep-query"
 
 type HighlightStoreState = {
-  feature: HighlightFeature | null
+  featureType: HighlightFeatureType | null
   text: string
-  setHighlight: (payload: { text: string; feature: HighlightFeature }) => void
+  setHighlight: (payload: {
+    text: string
+    feature: HighlightFeatureType
+  }) => void
   clearHighlight: () => void
 }
 
 export const useHighlightStore = create<HighlightStoreState>(set => ({
-  feature: null,
+  featureType: null,
   text: "",
   setHighlight: ({ text, feature }) =>
     set({
-      feature,
+      featureType: feature,
       text: text.trim(),
     }),
   clearHighlight: () =>
     set({
-      feature: null,
+      featureType: null,
       text: "",
     }),
 }))

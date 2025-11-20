@@ -4,8 +4,7 @@ import type { KeyboardEvent, MouseEvent, UIEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useDragControls } from "motion/react"
 import { Button } from "@/components/ui/button"
-import { useHighlightStore } from "../hooks/useHighlightStore"
-import { handleSend as handleSendRequest } from "../lib/handle-send"
+import useChat from "../hooks/useChat"
 
 type ChatMessageRole = "user" | "assistant" | "system"
 
@@ -24,16 +23,11 @@ type ChatProps = {
 }
 
 export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const { chatWindow, dragConstraints } = useChat()
   const hasDraggedRef = useRef(false)
-  const constraints = useDragConstraints()
   const dragControls = useDragControls()
-  const { feature, text: highlightText } = useHighlightStore()
 
-  useEffect(() => {
-    if (!highlightText.trim() || feature !== "ai-insights") return
-    setIsOpen(true)
-  }, [feature, highlightText])
+  console.log("chat isOpen:", chatWindow.isOpen)
 
   return (
     <motion.div
@@ -46,14 +40,14 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
       onDrag={() => {
         hasDraggedRef.current = true
       }}
-      dragConstraints={constraints}
+      dragConstraints={dragConstraints}
     >
       <div className="relative flex flex-col items-end gap-2">
-        {isOpen && (
+        {chatWindow.isOpen && (
           <ChatWindow
             onClose={event => {
               event.stopPropagation()
-              setIsOpen(false)
+              chatWindow.close()
             }}
             reportType={reportType}
             reportDate={reportDate}
@@ -74,7 +68,8 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
               hasDraggedRef.current = false
               return
             }
-            setIsOpen(open => !open)
+
+            chatWindow.open()
           }}
         >
           <span className="sr-only">Open chat</span>
@@ -96,42 +91,6 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
       </div>
     </motion.div>
   )
-}
-
-const margin = 16 as const
-const size = 64 as const
-function useDragConstraints() {
-  const [constraints, setConstraints] = useState({
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  })
-
-  useEffect(() => {
-    function updateConstraints() {
-      if (typeof window === "undefined") return
-
-      const maxX = window.innerWidth - margin - size
-      const maxY = window.innerHeight - margin - size
-
-      setConstraints({
-        top: -maxY,
-        left: -maxX,
-        right: 0,
-        bottom: 0,
-      })
-    }
-
-    updateConstraints()
-    window.addEventListener("resize", updateConstraints)
-
-    return () => {
-      window.removeEventListener("resize", updateConstraints)
-    }
-  }, [])
-
-  return constraints
 }
 
 type ChatWindowProps = {
@@ -165,7 +124,9 @@ function ChatWindow({
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
-  const { text: highlightText } = useHighlightStore()
+  const hasSentAiInsightsRef = useRef(false)
+
+  const { chatHightlight } = useChat()
 
   function handleMessageListScroll(event: UIEvent<HTMLDivElement>) {
     const target = event.currentTarget
@@ -223,38 +184,66 @@ function ChatWindow({
       setAbortController(controller)
       setIsSending(true)
 
+      let receivedAnyChunk = false
+
       try {
-        const receivedAnyChunk = await handleSendRequest({
-          reportType,
-          reportDate,
-          pdfText,
-          signal: controller.signal,
-          messages: history
-            .filter(item => item.role !== "system")
-            .map(item => ({
-              role: item.role,
-              content: item.message,
-            })),
-          onDelta: chunk => {
-            setMessages(prev => {
-              const existing = prev.find(m => m.id === assistantMessage.id)
-              if (!existing) {
-                return [
-                  ...prev,
-                  {
-                    ...assistantMessage,
-                    message: chunk,
-                  },
-                ]
-              }
-              return prev.map(message =>
-                message.id === assistantMessage.id
-                  ? { ...message, message: message.message + chunk }
-                  : message
-              )
-            })
+        const response = await fetch("/api/chat/deepseek", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
           },
+          signal: controller.signal,
+          body: JSON.stringify({
+            reportType,
+            reportDate,
+            pdfText,
+            messages: history
+              .filter(item => item.role !== "system")
+              .map(item => ({
+                role: item.role,
+                content: item.message,
+              })),
+          }),
         })
+
+        if (!response.ok) {
+          throw new Error("Request failed")
+        }
+
+        if (!response.body) {
+          throw new Error("No response body")
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+
+        for (;;) {
+          const { value, done } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          if (!chunk) continue
+
+          receivedAnyChunk = true
+
+          setMessages(prev => {
+            const existing = prev.find(m => m.id === assistantMessage.id)
+            if (!existing) {
+              return [
+                ...prev,
+                {
+                  ...assistantMessage,
+                  message: chunk,
+                },
+              ]
+            }
+            return prev.map(message =>
+              message.id === assistantMessage.id
+                ? { ...message, message: message.message + chunk }
+                : message
+            )
+          })
+        }
 
         if (!receivedAnyChunk) {
           setMessages(prev =>
@@ -316,11 +305,19 @@ function ChatWindow({
   )
 
   useEffect(() => {
-    if (!highlightText.trim()) return
+    if (!chatHightlight.text || hasSentAiInsightsRef.current) return
 
-    setInput(highlightText.trim())
-    void handleSend(highlightText.trim())
-  }, [highlightText, handleSend])
+    const content = chatHightlight.text.trim()
+    if (!content) {
+      chatHightlight.clear()
+      return
+    }
+
+    hasSentAiInsightsRef.current = true
+    setInput(content)
+    void handleSend(content)
+    chatHightlight.clear()
+  }, [chatHightlight, handleSend])
 
   function handleStop() {
     if (!abortController) return

@@ -23,7 +23,7 @@ import {
 import Chat from "./chat"
 import type { ReportType } from "../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../lib/parse-pdf-text"
-import { useHighlightStore } from "../hooks/useHighlightStore"
+import useChat from "../hooks/useChat"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -55,7 +55,8 @@ export default function PdfViewer({
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const lastScrollTimeRef = useRef(0)
-  const setHighlight = useHighlightStore(state => state.setHighlight)
+
+  const { chatHightlight, chatWindow } = useChat()
 
   useEffect(() => {
     if (pdfContainerRef.current) {
@@ -103,10 +104,11 @@ export default function PdfViewer({
       return
     }
 
-    setHighlight({
+    chatHightlight.set({
       text: selectedText,
       feature: "ai-insights",
     })
+    chatWindow.open()
   }
 
   return (
