@@ -41,17 +41,16 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
       dragConstraints={dragConstraints}
     >
       <div className="relative flex flex-col items-end gap-2">
-        {chatWindow.isOpen && (
-          <ChatWindow
-            onClose={event => {
-              event.stopPropagation()
-              chatWindow.close()
-            }}
-            reportType={reportType}
-            reportDate={reportDate}
-            pdfText={pdfText}
-          />
-        )}
+        <ChatWindow
+          isOpen={chatWindow.isOpen}
+          onClose={event => {
+            event.stopPropagation()
+            chatWindow.close()
+          }}
+          reportType={reportType}
+          reportDate={reportDate}
+          pdfText={pdfText}
+        />
 
         <button
           type="button"
@@ -67,7 +66,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
               return
             }
 
-            chatWindow.open()
+            chatWindow.toggle()
           }}
         >
           <span className="sr-only">Open chat</span>
@@ -92,6 +91,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
 }
 
 type ChatWindowProps = {
+  isOpen: boolean
   onClose: (event: MouseEvent<HTMLButtonElement>) => void
   reportType?: string | undefined
   reportDate?: string | undefined
@@ -109,6 +109,7 @@ const defaultMessages: ChatMessage[] = [
 ]
 
 function ChatWindow({
+  isOpen,
   onClose,
   reportType,
   reportDate,
@@ -370,7 +371,15 @@ function ChatWindow({
   }, [messages, isSending])
 
   return (
-    <div className="bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,36rem)] overflow-hidden rounded-lg border shadow-lg sm:bottom-16">
+    <div
+      className={`bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,36rem)] overflow-hidden rounded-lg border shadow-lg transition duration-150 sm:bottom-16 ${
+        isOpen
+          ? "pointer-events-auto opacity-100"
+          : "pointer-events-none translate-y-2 opacity-0"
+      }`}
+      aria-hidden={!isOpen}
+      hidden={!isOpen}
+    >
       <header className="flex items-center justify-between border-b px-3 py-2">
         <div className="flex flex-col gap-0.5">
           <div className="text-sm font-semibold sm:text-base">AI Assistant</div>
@@ -458,7 +467,7 @@ function ChatWindow({
               <div className="flex items-end gap-2">
                 <textarea
                   rows={2}
-                  className="bg-background focus-visible:ring-ring min-h-[72px] flex-1 resize-none rounded border px-2 py-2 text-sm outline-none focus-visible:ring-1"
+                  className="bg-background focus-visible:ring-ring h-12 flex-1 resize-none rounded border px-2 py-2 text-sm outline-none focus-visible:ring-1"
                   placeholder="Ask about this report..."
                   value={input}
                   onChange={event => setInput(event.target.value)}
@@ -469,7 +478,7 @@ function ChatWindow({
                 {isSending && abortController ? (
                   <Button
                     variant="outline"
-                    className="h-[38px] rounded px-3 text-xs"
+                    className="h-8 rounded px-3 text-xs"
                     onClick={handleStop}
                   >
                     Stop
@@ -477,7 +486,7 @@ function ChatWindow({
                 ) : (
                   <Button
                     variant="default"
-                    className="h-[38px] rounded px-3 text-xs disabled:opacity-20"
+                    className="h-8 rounded px-3 text-xs disabled:opacity-20"
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || isSending}
                   >
