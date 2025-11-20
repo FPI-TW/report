@@ -126,7 +126,6 @@ function ChatWindow({
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
-  const hasSentAiInsightsRef = useRef(false)
   const { chatHightlight } = useChat()
 
   function handleMessageListScroll(event: UIEvent<HTMLDivElement>) {
@@ -319,6 +318,7 @@ function ChatWindow({
   )
 
   useEffect(() => {
+    if (isSending) return
     if (!chatHightlight.text) return
 
     const content = chatHightlight.text.trim()
@@ -328,9 +328,6 @@ function ChatWindow({
     }
 
     if (chatHightlight.featureType === "ai-insights") {
-      if (hasSentAiInsightsRef.current) return
-
-      hasSentAiInsightsRef.current = true
       setInput(content)
       void handleSend(content)
       chatHightlight.clear()
@@ -342,6 +339,7 @@ function ChatWindow({
       chatHightlight.clear()
     }
   }, [
+    isSending,
     chatHightlight,
     chatHightlight.text,
     chatHightlight.featureType,
