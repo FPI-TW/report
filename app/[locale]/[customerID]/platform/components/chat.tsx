@@ -118,6 +118,7 @@ function ChatWindow({
   const lockedScrollTopRef = useRef<number | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages)
   const [input, setInput] = useState("")
+  const [attachedText, setAttachedText] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [abortController, setAbortController] =
@@ -150,10 +151,13 @@ function ChatWindow({
       const text = rawText ?? input
       const content = text.trim()
       if (!content || isSending) return
+      const messageContent = attachedText
+        ? `${content}\n\nReference:\n${attachedText}`
+        : content
 
       const userMessage: ChatMessage = {
         id: Date.now(),
-        message: content,
+        message: messageContent,
         sender: "You",
         direction: "outgoing",
         role: "user",
@@ -298,7 +302,7 @@ function ChatWindow({
         lockedScrollTopRef.current = messageListRef.current.scrollTop
       }
     },
-    [input, isSending, messages, pdfText, reportDate, reportType]
+    [attachedText, input, isSending, messages, pdfText, reportDate, reportType]
   )
 
   useEffect(() => {
@@ -321,11 +325,7 @@ function ChatWindow({
     }
 
     if (chatHightlight.featureType === "deep-query") {
-      setInput(prev =>
-        prev && prev.trim().length > 0
-          ? `${content}\n\n${prev}`
-          : `${content}\n\n`
-      )
+      setAttachedText(content)
       chatHightlight.clear()
     }
   }, [
@@ -338,6 +338,11 @@ function ChatWindow({
   function handleStop() {
     if (!abortController) return
     abortController.abort()
+  }
+
+  function handleRemoveAttachedText() {
+    setAttachedText("")
+    chatHightlight.clear()
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -427,35 +432,58 @@ function ChatWindow({
             </button>
           )}
 
-          <div className="flex h-12 items-center justify-center gap-2 border-t px-2 py-2">
-            <textarea
-              rows={1}
-              className="bg-background focus-visible:ring-ring size-full resize-none rounded border px-2 py-1 text-sm outline-none focus-visible:ring-1"
-              placeholder="Type a message..."
-              value={input}
-              onChange={event => setInput(event.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isSending && !abortController}
-            />
+          <div className="bg-muted/30 border-t px-3 py-3">
+            <div className="flex flex-col gap-2">
+              {attachedText && (
+                <div className="bg-background relative rounded-md border px-3 py-2 shadow-sm">
+                  <div className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+                    深度研究(針對此段內容提問)
+                  </div>
+                  <div className="text-foreground/70 whitespace-no-wrap max-h-24 truncate overflow-y-auto pt-1 text-xs leading-relaxed">
+                    {attachedText}
+                  </div>
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground absolute top-2 right-2 rounded p-1 text-xs"
+                    onClick={handleRemoveAttachedText}
+                    aria-label="Remove attached reference"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
-            {isSending && abortController ? (
-              <Button
-                variant="outline"
-                className="h-full rounded px-3 text-xs"
-                onClick={handleStop}
-              >
-                Stop
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                className="h-full rounded px-3 text-xs disabled:opacity-20"
-                onClick={() => void handleSend()}
-                disabled={!input.trim() || isSending}
-              >
-                Send
-              </Button>
-            )}
+              <div className="flex items-end gap-2">
+                <textarea
+                  rows={2}
+                  className="bg-background focus-visible:ring-ring min-h-[72px] flex-1 resize-none rounded border px-2 py-2 text-sm outline-none focus-visible:ring-1"
+                  placeholder="Ask about this report..."
+                  value={input}
+                  onChange={event => setInput(event.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isSending && !abortController}
+                />
+
+                {isSending && abortController ? (
+                  <Button
+                    variant="outline"
+                    className="h-[38px] rounded px-3 text-xs"
+                    onClick={handleStop}
+                  >
+                    Stop
+                  </Button>
+                ) : (
+                  <Button
+                    variant="default"
+                    className="h-[38px] rounded px-3 text-xs disabled:opacity-20"
+                    onClick={() => void handleSend()}
+                    disabled={!input.trim() || isSending}
+                  >
+                    Send
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
