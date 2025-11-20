@@ -13,6 +13,7 @@ import { Document, Page, pdfjs } from "react-pdf"
 import { Button } from "@/components/ui/button"
 import Chat from "./chat"
 import type { ReportType } from "../lib/query-report-by-type"
+import { parsePdfTextFromUrl } from "../lib/parse-pdf-text"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -40,6 +41,7 @@ export default function PdfViewer({
   const [pageNumber, setPageNumber] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
   const [pageInput, setPageInput] = useState("1")
+  const [pdfText, setPdfText] = useState("")
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const lastScrollTimeRef = useRef(0)
@@ -83,7 +85,11 @@ export default function PdfViewer({
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
         {/* Fixed Chat */}
-        <Chat reportType={reportType} reportDate={reportDate} />
+        <Chat
+          reportType={reportType}
+          reportDate={reportDate}
+          pdfText={pdfText}
+        />
 
         {/* Main Content */}
         <div className="flex w-120 flex-col gap-0.5">
@@ -176,8 +182,16 @@ export default function PdfViewer({
               error={
                 <div className="text-destructive text-xs">{errorLabel}</div>
               }
-              onLoadSuccess={({ numPages: loadedNumPages }) => {
+              onLoadSuccess={async ({ numPages: loadedNumPages }) => {
                 setNumPages(loadedNumPages ?? 0)
+                if (!loadedNumPages || loadedNumPages <= 0) {
+                  setPdfText("")
+                  return
+                }
+
+                const text = await parsePdfTextFromUrl(url)
+                console.log("success", text.length)
+                setPdfText(text)
               }}
             >
               <div

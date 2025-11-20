@@ -18,9 +18,10 @@ type ChatMessage = {
 type ChatProps = {
   reportType?: string
   reportDate?: string
+  pdfText: string
 }
 
-export default function Chat({ reportType, reportDate }: ChatProps) {
+export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
   const [isOpen, setIsOpen] = useState(false)
   const hasDraggedRef = useRef(false)
   const constraints = useDragConstraints()
@@ -48,6 +49,7 @@ export default function Chat({ reportType, reportDate }: ChatProps) {
             }}
             reportType={reportType}
             reportDate={reportDate}
+            pdfText={pdfText}
           />
         )}
 
@@ -128,9 +130,15 @@ type ChatWindowProps = {
   onClose: (event: MouseEvent<HTMLButtonElement>) => void
   reportType?: string | undefined
   reportDate?: string | undefined
+  pdfText: string
 }
 
-function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
+function ChatWindow({
+  onClose,
+  reportType,
+  reportDate,
+  pdfText,
+}: ChatWindowProps) {
   const messageListRef = useRef<HTMLDivElement | null>(null)
   const lockedScrollTopRef = useRef<number | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -215,6 +223,7 @@ function ChatWindow({ onClose, reportType, reportDate }: ChatWindowProps) {
         body: JSON.stringify({
           reportType,
           reportDate,
+          pdfText,
           messages: history
             .filter(item => item.role !== "system")
             .map(item => ({
