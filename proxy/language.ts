@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 type AvailableLocale = "zh-hant" | "zh-hans" | "en"
 const locales: AvailableLocale[] = ["zh-hant", "zh-hans", "en"] as const
-const defaultLocale: AvailableLocale = "zh-hant" as const
+export const defaultLocale: AvailableLocale = "zh-hant" as const
 
 function hasPathLocale(pathname: string): boolean {
   return locales.some(

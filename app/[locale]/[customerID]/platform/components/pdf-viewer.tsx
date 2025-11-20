@@ -1,5 +1,8 @@
 "use client"
 
+import "react-pdf/dist/Page/AnnotationLayer.css"
+import "react-pdf/dist/Page/TextLayer.css"
+
 import {
   useEffect,
   useRef,
@@ -7,10 +10,20 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-
-import "react-pdf/dist/Page/AnnotationLayer.css"
-import "react-pdf/dist/Page/TextLayer.css"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import Chat from "./chat"
+import type { ReportType } from "../lib/query-report-by-type"
+import { parsePdfTextFromUrl } from "../lib/parse-pdf-text"
+import useChat from "../hooks/useChat"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -21,17 +34,29 @@ type Props = {
   url: string
   title: string
   errorLabel: string
+  reportType: ReportType
+  reportDate: string
   onClose: () => void
 }
 
-export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
+export default function PdfViewer({
+  url,
+  title,
+  errorLabel,
+  reportType,
+  reportDate,
+  onClose,
+}: Props) {
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
   const [pageInput, setPageInput] = useState("1")
+  const [pdfText, setPdfText] = useState("")
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const lastScrollTimeRef = useRef(0)
+
+  const { chatHightlight, chatWindow } = useChat()
 
   useEffect(() => {
     if (pdfContainerRef.current) {
@@ -68,11 +93,60 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
     }
   }
 
+  const handleAiInsights = () => {
+    if (typeof window === "undefined") return
+
+    const selection = window.getSelection()
+    const selectedText = selection?.toString().trim() ?? ""
+
+    if (!selectedText) {
+      toast("Please highlight some text in the report first.")
+      return
+    }
+
+    chatHightlight.set({
+      text: selectedText,
+      feature: "ai-insights",
+    })
+    chatWindow.open()
+  }
+
+  const handleDeepQuery = () => {
+    if (typeof window === "undefined") return
+
+    const selection = window.getSelection()
+    const selectedText = selection?.toString().trim() ?? ""
+
+    if (!selectedText) {
+      toast("Please highlight some text in the report first.")
+      return
+    }
+
+    chatHightlight.set({
+      text: selectedText,
+      feature: "deep-query",
+    })
+    chatWindow.open()
+  }
+
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
-        <div className="w-60">
+        {/* Fixed Chat */}
+        <Chat
+          reportType={reportType}
+          reportDate={reportDate}
+          pdfText={pdfText}
+        />
+
+        {/* Main Content */}
+        <div className="flex w-120 flex-col gap-0.5">
           <h2 className="truncate text-sm font-medium sm:text-base">{title}</h2>
+          <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] sm:text-xs">
+            <span>{reportDate}</span>
+            <span className="text-gray-400">·</span>
+            <span>{reportType}</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-1">
@@ -121,7 +195,7 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
           )}
         </div>
 
-        <div className="flex w-60 items-center justify-end gap-2 text-xs">
+        <div className="flex w-120 items-center justify-end gap-2 text-xs">
           {url && (
             <a
               href={url}
@@ -135,7 +209,11 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
           )}
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={() => {
+              onClose()
+              chatWindow.close()
+              chatHightlight.clear()
+            }}
             className="h-7 rounded px-2"
           >
             Close
@@ -156,20 +234,45 @@ export default function PdfViewer({ url, title, errorLabel, onClose }: Props) {
               error={
                 <div className="text-destructive text-xs">{errorLabel}</div>
               }
-              onLoadSuccess={({ numPages: loadedNumPages }) => {
+              onLoadSuccess={async ({ numPages: loadedNumPages }) => {
                 setNumPages(loadedNumPages ?? 0)
+                if (!loadedNumPages || loadedNumPages <= 0) {
+                  setPdfText("")
+                  return
+                }
+
+                const text = await parsePdfTextFromUrl(url)
+                setPdfText(text)
               }}
             >
               <div
                 className="flex h-full w-full items-center justify-center px-4"
                 onWheel={handleWheel}
               >
-                <Page
-                  pageNumber={pageNumber}
-                  height={pdfHeight}
-                  renderTextLayer
-                  renderAnnotationLayer={false}
-                />
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Page
+                        pageNumber={pageNumber}
+                        height={pdfHeight}
+                        renderTextLayer
+                        renderAnnotationLayer={false}
+                      />
+                    </div>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuLabel className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                      AI tools
+                    </ContextMenuLabel>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onSelect={handleAiInsights}>
+                      AI Insights
+                    </ContextMenuItem>
+                    <ContextMenuItem onSelect={handleDeepQuery}>
+                      Deep query
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
               </div>
             </Document>
           </div>

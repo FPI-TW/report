@@ -127,6 +127,7 @@ export default function DashboardPage() {
                         key={item.key}
                         item={item}
                         name={isLongName ? fileName : item.date}
+                        reportType={type}
                       />
                     )
                   })}

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { UploadApi } from "@/lib/api"
 
 const schema = z.object({
   category: z.enum([
@@ -83,26 +84,24 @@ export default function UploadPage() {
       const file = parsed.data.file
       if (!file) return
 
-      const presignResp = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
+      const { response: presignResp, data: presignBody } =
+        await UploadApi.createUploadUrl({
           category: parsed.data.category,
           filename:
             parsed.data.filename && parsed.data.filename.trim().length > 0
               ? parsed.data.filename
               : file.name,
           contentType: file.type || "application/octet-stream",
-        }),
-      })
-      const presignBody = await presignResp.json().catch(() => ({}))
-      console.log("presignBody", presignBody)
+        })
+
       if (!presignResp.ok || !presignBody?.ok || !presignBody.uploadUrl) {
-        throw new Error(
-          presignBody?.message || presignBody?.error || "Upload failed"
-        )
+        const message =
+          !presignBody.ok && "message" in presignBody && presignBody.message
+            ? presignBody.message
+            : !presignBody.ok && "error" in presignBody && presignBody.error
+              ? presignBody.error
+              : "Upload failed"
+        throw new Error(message)
       }
 
       const uploadResp = await fetch(presignBody.uploadUrl as string, {

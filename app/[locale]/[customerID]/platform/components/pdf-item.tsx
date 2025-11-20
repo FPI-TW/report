@@ -7,15 +7,18 @@ import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "motion/react"
 import useDialog from "@/hooks/useDialog"
 import PdfViewer from "./pdf-viewer"
+import type { ReportType } from "../lib/query-report-by-type"
+import { ReportsApi } from "@/lib/api"
 
 export type PdfSource = { key: string; date: string; url: string }
 
 type Props = {
   item: PdfSource
   name?: string | undefined
+  reportType: ReportType
 }
 
-export default function PdfItem({ item, name }: Props) {
+export default function PdfItem({ item, name, reportType }: Props) {
   const t = useTranslations("dashboard")
   const displayName = name ?? item.date
   const pdfModal = useDialog()
@@ -26,12 +29,10 @@ export default function PdfItem({ item, name }: Props) {
     if (isLoading) return
     setIsLoading(true)
     try {
-      const res = await fetch(
-        `/api/reports/url?key=${encodeURIComponent(item.key)}`,
-        { cache: "no-store" }
-      )
-      if (!res.ok) throw new Error("sign_failed")
-      const data: { url: string } = await res.json()
+      const { response, data } = await ReportsApi.fetchReportUrl(item.key)
+      if (!response.ok || !("url" in data)) {
+        throw new Error("sign_failed")
+      }
       setViewerUrl(data.url)
       pdfModal.open()
     } catch {
@@ -52,11 +53,7 @@ export default function PdfItem({ item, name }: Props) {
           alt="PDF"
           width={75}
           height={92}
-          className="opacity-80"
-          style={{
-            height: "auto",
-            width: "64px",
-          }}
+          className="h-auto w-16 opacity-80"
         />
         <h4 className="text-center text-base font-medium break-all whitespace-normal text-gray-900 sm:text-lg">
           {displayName}
@@ -84,6 +81,8 @@ export default function PdfItem({ item, name }: Props) {
                     url={viewerUrl}
                     title={displayName}
                     errorLabel={t("error")}
+                    reportType={reportType}
+                    reportDate={item.date}
                     onClose={pdfModal.close}
                   />
                 ) : (

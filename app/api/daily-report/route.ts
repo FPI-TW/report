@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       headers: { "content-type": "application/json" },
     })
   } catch (err) {
-    console.log(err)
+    console.error("Failed to list daily reports:", err)
     return new Response(
       JSON.stringify({
         error: "list_failed",
