@@ -11,6 +11,14 @@ import {
 } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
 import { Button } from "@/components/ui/button"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import Chat from "./chat"
 import type { ReportType } from "../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../lib/parse-pdf-text"
@@ -198,12 +206,24 @@ export default function PdfViewer({
                 className="flex h-full w-full items-center justify-center px-4"
                 onWheel={handleWheel}
               >
-                <Page
-                  pageNumber={pageNumber}
-                  height={pdfHeight}
-                  renderTextLayer
-                  renderAnnotationLayer={false}
-                />
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Page
+                        pageNumber={pageNumber}
+                        height={pdfHeight}
+                        renderTextLayer
+                        renderAnnotationLayer={false}
+                      />
+                    </div>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuLabel>AI features</ContextMenuLabel>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem>AI Insights</ContextMenuItem>
+                    <ContextMenuItem>Deep query</ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
               </div>
             </Document>
           </div>
