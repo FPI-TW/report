@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useDragControls } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { useHighlightStore } from "../hooks/useHighlightStore"
+import { handleSend as handleSendRequest } from "../lib/handle-send"
 
 type ChatMessageRole = "user" | "assistant" | "system"
 
@@ -27,7 +28,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
   const hasDraggedRef = useRef(false)
   const constraints = useDragConstraints()
   const dragControls = useDragControls()
-  const { feature, text: highlightText, clearHighlight } = useHighlightStore()
+  const { feature, text: highlightText } = useHighlightStore()
 
   useEffect(() => {
     if (!highlightText.trim() || feature !== "ai-insights") return
@@ -57,7 +58,6 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
             reportType={reportType}
             reportDate={reportDate}
             pdfText={pdfText}
-            onAiInsightsConsumed={clearHighlight}
           />
         )}
 
@@ -139,33 +139,32 @@ type ChatWindowProps = {
   reportType?: string | undefined
   reportDate?: string | undefined
   pdfText: string
-  onAiInsightsConsumed?: () => void
 }
+
+const defaultMessages: ChatMessage[] = [
+  {
+    id: 1,
+    message: "Hi! Ask anything about this report.",
+    sender: "Assistant",
+    direction: "incoming",
+    role: "assistant",
+  },
+]
 
 function ChatWindow({
   onClose,
   reportType,
   reportDate,
   pdfText,
-  onAiInsightsConsumed,
 }: ChatWindowProps) {
   const messageListRef = useRef<HTMLDivElement | null>(null)
   const lockedScrollTopRef = useRef<number | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 1,
-      message: "Hi! Ask anything about this report.",
-      sender: "Assistant",
-      direction: "incoming",
-      role: "assistant",
-    },
-  ])
+  const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages)
   const [input, setInput] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
-  const hasSentAiInsightsRef = useRef(false)
   const { text: highlightText } = useHighlightStore()
 
   function handleMessageListScroll(event: UIEvent<HTMLDivElement>) {
@@ -187,6 +186,7 @@ function ChatWindow({
       behavior: "smooth",
     })
   }
+
   const handleSend = useCallback(
     async (rawText?: string) => {
       const text = rawText ?? input
@@ -223,66 +223,38 @@ function ChatWindow({
       setAbortController(controller)
       setIsSending(true)
 
-      let receivedAnyChunk = false
-
       try {
-        const response = await fetch("/api/chat/deepseek", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
+        const receivedAnyChunk = await handleSendRequest({
+          reportType,
+          reportDate,
+          pdfText,
           signal: controller.signal,
-          body: JSON.stringify({
-            reportType,
-            reportDate,
-            pdfText,
-            messages: history
-              .filter(item => item.role !== "system")
-              .map(item => ({
-                role: item.role,
-                content: item.message,
-              })),
-          }),
+          messages: history
+            .filter(item => item.role !== "system")
+            .map(item => ({
+              role: item.role,
+              content: item.message,
+            })),
+          onDelta: chunk => {
+            setMessages(prev => {
+              const existing = prev.find(m => m.id === assistantMessage.id)
+              if (!existing) {
+                return [
+                  ...prev,
+                  {
+                    ...assistantMessage,
+                    message: chunk,
+                  },
+                ]
+              }
+              return prev.map(message =>
+                message.id === assistantMessage.id
+                  ? { ...message, message: message.message + chunk }
+                  : message
+              )
+            })
+          },
         })
-
-        if (!response.ok) {
-          throw new Error("Request failed")
-        }
-
-        if (!response.body) {
-          throw new Error("No response body")
-        }
-
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-
-        for (;;) {
-          const { value, done } = await reader.read()
-          if (done) break
-
-          const chunk = decoder.decode(value, { stream: true })
-          if (!chunk) continue
-
-          receivedAnyChunk = true
-
-          setMessages(prev => {
-            const existing = prev.find(m => m.id === assistantMessage.id)
-            if (!existing) {
-              return [
-                ...prev,
-                {
-                  ...assistantMessage,
-                  message: chunk,
-                },
-              ]
-            }
-            return prev.map(message =>
-              message.id === assistantMessage.id
-                ? { ...message, message: message.message + chunk }
-                : message
-            )
-          })
-        }
 
         if (!receivedAnyChunk) {
           setMessages(prev =>
@@ -344,19 +316,11 @@ function ChatWindow({
   )
 
   useEffect(() => {
-    if (!highlightText || hasSentAiInsightsRef.current) return
+    if (!highlightText.trim()) return
 
-    const content = highlightText.trim()
-    if (!content) {
-      onAiInsightsConsumed?.()
-      return
-    }
-
-    hasSentAiInsightsRef.current = true
-    setInput(content)
-    void handleSend(content)
-    onAiInsightsConsumed?.()
-  }, [highlightText, handleSend, onAiInsightsConsumed])
+    setInput(highlightText.trim())
+    void handleSend(highlightText.trim())
+  }, [highlightText, handleSend])
 
   function handleStop() {
     if (!abortController) return
@@ -365,8 +329,7 @@ function ChatWindow({
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     const isComposing =
-      (event as unknown as { nativeEvent?: { isComposing?: boolean } })
-        .nativeEvent?.isComposing || event.key === "Process"
+      event.nativeEvent?.isComposing || event.key === "Process"
 
     if (isComposing) return
 
@@ -376,6 +339,7 @@ function ChatWindow({
     }
   }
 
+  // 取消自動滾動功能，避免在輸入時不斷滾動，影響閱讀
   useEffect(() => {
     if (!isSending) return
     const container = messageListRef.current
