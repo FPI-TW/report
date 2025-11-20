@@ -14,6 +14,7 @@ type ChatRequestBody = {
   reportType?: string
   reportDate?: string
   messages?: ChatRequestMessage[]
+  pdfText?: string
 }
 
 const apiUrl = "https://api.deepseek.com/v1"
@@ -46,13 +47,22 @@ export async function POST(req: NextRequest) {
   const locale = cookieStore.get("NEXT_LOCALE")?.value || defaultLocale
   const reportType = body?.reportType || "daily report"
   const reportDate = body?.reportDate || new Date().toISOString().split("T")[0]
+  const rawPdfText = body?.pdfText || ""
+  const MAX_PDF_TEXT_LENGTH = 8000
+  const pdfText =
+    typeof rawPdfText === "string"
+      ? rawPdfText.slice(0, MAX_PDF_TEXT_LENGTH)
+      : ""
 
   const system_prompt =
     BASIC_PROMPT +
     `Language: ${locale}` +
     PARAMS_PROMPT +
     `${reportType ? `Report Type: ${reportType}` : ""}, Report Date: ${reportDate ? reportDate : ""}` +
-    RESPONSE_HINT
+    RESPONSE_HINT +
+    (pdfText
+      ? `\n以下是完整的報告文字內容，請優先根據此內容回答使用者的問題：\n${pdfText}`
+      : "")
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     ...body.messages.map(m => ({
