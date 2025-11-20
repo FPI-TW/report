@@ -209,7 +209,11 @@ export default function PdfViewer({
           )}
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={() => {
+              onClose()
+              chatWindow.close()
+              chatHightlight.clear()
+            }}
             className="h-7 rounded px-2"
           >
             Close
