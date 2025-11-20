@@ -3,6 +3,7 @@
 import type { KeyboardEvent, MouseEvent, UIEvent } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useDragControls } from "motion/react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import useChat from "../hooks/useChat"
 
@@ -24,6 +25,7 @@ type ChatProps = {
 
 export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
   const { chatWindow, dragConstraints } = useChat()
+  const t = useTranslations("chat")
   const hasDraggedRef = useRef(false)
   const dragControls = useDragControls()
 
@@ -69,7 +71,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
             chatWindow.toggle()
           }}
         >
-          <span className="sr-only">Open chat</span>
+          <span className="sr-only">{t("open_chat")}</span>
           <svg
             className="text-foreground h-5 w-5 sm:h-6 sm:w-6"
             viewBox="0 0 24 24"
@@ -98,16 +100,6 @@ type ChatWindowProps = {
   pdfText: string
 }
 
-const defaultMessages: ChatMessage[] = [
-  {
-    id: 1,
-    message: "Hi! Ask anything about this report.",
-    sender: "Assistant",
-    direction: "incoming",
-    role: "assistant",
-  },
-]
-
 function ChatWindow({
   isOpen,
   onClose,
@@ -115,9 +107,19 @@ function ChatWindow({
   reportDate,
   pdfText,
 }: ChatWindowProps) {
+  const t = useTranslations("chat")
+  const initialMessages: ChatMessage[] = [
+    {
+      id: 1,
+      message: t("welcome"),
+      sender: "Assistant",
+      direction: "incoming",
+      role: "assistant",
+    },
+  ]
   const messageListRef = useRef<HTMLDivElement | null>(null)
   const lockedScrollTopRef = useRef<number | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages)
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [input, setInput] = useState("")
   const [attachedText, setAttachedText] = useState("")
   const [isSending, setIsSending] = useState(false)
@@ -153,7 +155,7 @@ function ChatWindow({
       const content = text.trim()
       if (!content || isSending) return
       const messageContent = attachedText
-        ? `${content}\n\nReference:\n${attachedText}`
+        ? `${content}\n\n${t("reference")}\n${attachedText}`
         : content
 
       const userMessage: ChatMessage = {
@@ -255,7 +257,7 @@ function ChatWindow({
               message.id === assistantMessage.id && !message.message.trim()
                 ? {
                     ...message,
-                    message: "Sorry, DeepSeek did not return any content.",
+                    message: t("no_content"),
                   }
                 : message
             )
@@ -270,7 +272,7 @@ function ChatWindow({
                 ...prev,
                 {
                   ...assistantMessage,
-                  message: "Generation stopped.",
+                  message: t("generation_stopped"),
                 },
               ]
             }
@@ -278,7 +280,7 @@ function ChatWindow({
               message.id === assistantMessage.id && !message.message.trim()
                 ? {
                     ...message,
-                    message: "Generation stopped.",
+                    message: t("generation_stopped"),
                   }
                 : message
             )
@@ -288,8 +290,7 @@ function ChatWindow({
             ...prev,
             {
               id: Date.now() + 2,
-              message:
-                "There was a problem talking to DeepSeek. Please try again later.",
+              message: t("api_error"),
               sender: "System",
               direction: "incoming",
               role: "system",
@@ -305,7 +306,16 @@ function ChatWindow({
         lockedScrollTopRef.current = messageListRef.current.scrollTop
       }
     },
-    [attachedText, input, isSending, messages, pdfText, reportDate, reportType]
+    [
+      attachedText,
+      input,
+      isSending,
+      messages,
+      pdfText,
+      reportDate,
+      reportType,
+      t,
+    ]
   )
 
   useEffect(() => {
@@ -382,12 +392,14 @@ function ChatWindow({
     >
       <header className="flex items-center justify-between border-b px-3 py-2">
         <div className="flex flex-col gap-0.5">
-          <div className="text-sm font-semibold sm:text-base">AI Assistant</div>
+          <div className="text-sm font-semibold sm:text-base">{t("title")}</div>
         </div>
         <button
           type="button"
           className="text-muted-foreground hover:bg-muted rounded-full px-2 py-1 text-xs"
           onClick={onClose}
+          aria-label={t("close_chat")}
+          title={t("close_chat")}
         >
           ✕
         </button>
@@ -420,7 +432,7 @@ function ChatWindow({
                   !message.message.trim() &&
                   isSending ? (
                     <span className="flex items-center gap-1">
-                      <span className="sr-only">Loading response</span>
+                      <span className="sr-only">{t("loading_response")}</span>
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current delay-150" />
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current delay-300" />
@@ -439,7 +451,7 @@ function ChatWindow({
               className="bg-background/90 hover:bg-muted text-foreground absolute right-3 bottom-20 z-10 rounded-full border px-3 py-1 text-[11px] shadow"
               onClick={handleScrollToBottom}
             >
-              回到最新訊息
+              {t("scroll_to_latest")}
             </button>
           )}
 
@@ -448,7 +460,7 @@ function ChatWindow({
               {attachedText && (
                 <div className="bg-background relative rounded-md border px-3 py-2 shadow-sm">
                   <div className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
-                    深度研究(針對此段內容提問)
+                    {t("attached_title")}
                   </div>
                   <div className="text-foreground/70 whitespace-no-wrap max-h-24 truncate overflow-y-auto pt-1 text-xs leading-relaxed">
                     {attachedText}
@@ -457,7 +469,7 @@ function ChatWindow({
                     type="button"
                     className="text-muted-foreground hover:text-foreground absolute top-2 right-2 rounded p-1 text-xs"
                     onClick={handleRemoveAttachedText}
-                    aria-label="Remove attached reference"
+                    aria-label={t("remove_attached")}
                   >
                     ✕
                   </button>
@@ -468,7 +480,7 @@ function ChatWindow({
                 <textarea
                   rows={2}
                   className="bg-background focus-visible:ring-ring h-12 flex-1 resize-none rounded border px-2 py-2 text-sm outline-none focus-visible:ring-1"
-                  placeholder="Ask about this report..."
+                  placeholder={t("placeholder")}
                   value={input}
                   onChange={event => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}
@@ -481,7 +493,7 @@ function ChatWindow({
                     className="h-8 rounded px-3 text-xs"
                     onClick={handleStop}
                   >
-                    Stop
+                    {t("stop")}
                   </Button>
                 ) : (
                   <Button
@@ -490,7 +502,7 @@ function ChatWindow({
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || isSending}
                   >
-                    Send
+                    {t("send")}
                   </Button>
                 )}
               </div>

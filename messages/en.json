@@ -50,7 +50,38 @@
     "research_description": "Ting Fong FinTech provides in-depth analysis of the financial markets from a professional perspective, continuously offering unique insights. By combining industry experience with innovative technology, we deliver valuable market intelligence to our clients. This special report section presents our observations and analyses of the financial markets to help you stay ahead of emerging opportunities.",
     "tab_ai_news": "AI News",
     "ai_news_title": "AI Daily Intelligence Report",
-    "ai_news_description": "As artificial intelligence continues to play an increasingly vital role across various industries, keeping up with its rapid developments has become essential. Ting Fong FinTech provides a daily AI intelligence report to help you stay informed of the latest trends and breakthroughs in artificial intelligence, ensuring you remain ahead in this digital era."
+    "ai_news_description": "As artificial intelligence continues to play an increasingly vital role across various industries, keeping up with its rapid developments has become essential. Ting Fong FinTech provides a daily AI intelligence report to help you stay informed of the latest trends and breakthroughs in artificial intelligence, ensuring you remain ahead in this digital era.",
+    "daily-report": "Daily Report",
+    "weekly-report": "Weekly Report",
+    "research-report": "Research",
+    "ai-news-report": "AI News"
+  },
+  "chat": {
+    "open_chat": "Open chat",
+    "welcome": "Hi! Ask anything about this report.",
+    "title": "AI Assistant",
+    "close_chat": "Close chat",
+    "loading_response": "Loading response",
+    "no_content": "Sorry, DeepSeek did not return any content.",
+    "generation_stopped": "Generation stopped.",
+    "api_error": "There was a problem talking to DeepSeek. Please try again later.",
+    "scroll_to_latest": "Back to latest",
+    "attached_title": "Deep research (ask about this selection)",
+    "remove_attached": "Remove attached reference",
+    "placeholder": "Ask about this report...",
+    "stop": "Stop",
+    "send": "Send",
+    "reference": "Reference:"
+  },
+  "pdf_viewer": {
+    "select_text": "Please highlight some text in the report first.",
+    "download": "Download",
+    "close": "Close",
+    "loading_pdf": "Loading PDF…",
+    "no_file": "No file to display.",
+    "context_title": "AI tools",
+    "ai_insights": "AI Insights",
+    "deep_query": "Deep query"
   },
   "customer": {
     "background_alt": "background"

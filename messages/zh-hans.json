@@ -49,7 +49,38 @@
     "research_description": "廷丰金融科技以专业视角深入剖析金融市场，持续提出独到见解。我们结合产业经验与创新科技，为客户带来具价值的市场洞察。本专题报告区将分享我们对金融市场的观察与分析，助您掌握先机。",
     "tab_ai_news": "AI 重讯",
     "ai_news_title": "AI 重讯日报",
-    "ai_news_description": "随着人工智能在各个领域中扮演着越来越重要的角色，掌握其动态变得至关重要。廷丰金融科技将每日为您提供AI重讯报告，帮助您掌握人工智能的最新趋势与突破，助您在这个数字时代中保持领先。"
+    "ai_news_description": "随着人工智能在各个领域中扮演着越来越重要的角色，掌握其动态变得至关重要。廷丰金融科技将每日为您提供AI重讯报告，帮助您掌握人工智能的最新趋势与突破，助您在这个数字时代中保持领先。",
+    "daily-report": "每日晨报",
+    "weekly-report": "策略双週报",
+    "research-report": "专题报告",
+    "ai-news-report": "AI 重讯"
+  },
+  "chat": {
+    "open_chat": "打开聊天",
+    "welcome": "嗨！可以针对这份报告提问。",
+    "title": "AI 助理",
+    "close_chat": "关闭聊天",
+    "loading_response": "正在生成回复",
+    "no_content": "抱歉，DeepSeek 没有返回内容。",
+    "generation_stopped": "已停止生成。",
+    "api_error": "DeepSeek 通讯出现问题，请稍后再试。",
+    "scroll_to_latest": "回到最新消息",
+    "attached_title": "深度研究（针对此段内容提问）",
+    "remove_attached": "移除附加参考",
+    "placeholder": "针对报告提问...",
+    "stop": "停止",
+    "send": "发送",
+    "reference": "参考："
+  },
+  "pdf_viewer": {
+    "select_text": "请先选取报告中的文字。",
+    "download": "下载",
+    "close": "关闭",
+    "loading_pdf": "加载 PDF…",
+    "no_file": "暂无可显示的文件。",
+    "context_title": "AI 工具",
+    "ai_insights": "AI 洞察",
+    "deep_query": "深度提问"
   },
   "customer": {
     "background_alt": "背景"
