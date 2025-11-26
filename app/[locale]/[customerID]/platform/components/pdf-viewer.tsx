@@ -3,12 +3,7 @@
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type WheelEvent as ReactWheelEvent,
-} from "react"
+import { useEffect, useRef, useState } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -51,50 +46,66 @@ export default function PdfViewer({
   const t = useTranslations("pdf_viewer")
   const t_dashboard = useTranslations("dashboard")
   const [numPages, setNumPages] = useState<number | null>(null)
-  const [pageNumber, setPageNumber] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
-  const [pageInput, setPageInput] = useState("1")
   const [pdfText, setPdfText] = useState("")
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
-  const lastScrollTimeRef = useRef(0)
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const { chatHightlight, chatWindow } = useChat()
 
   useEffect(() => {
-    if (pdfContainerRef.current) {
-      setPdfHeight(pdfContainerRef.current.clientHeight * 0.95)
+    if (!pdfContainerRef.current) return
+    const container = pdfContainerRef.current
+
+    const updateHeight = () => {
+      setPdfHeight(container.clientHeight * 0.95)
     }
+
+    updateHeight()
+
+    const resizeObserver = new ResizeObserver(updateHeight)
+    resizeObserver.observe(container)
+
+    return () => resizeObserver.disconnect()
   }, [url])
 
   useEffect(() => {
+    if (!pdfContainerRef.current || !numPages) return
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const visibleEntry = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+
+        const pageNumber = Number(
+          visibleEntry?.target.getAttribute("data-page-number")
+        )
+
+        if (Number.isFinite(pageNumber)) {
+          setCurrentPage(pageNumber)
+        }
+      },
+      {
+        root: pdfContainerRef.current,
+        threshold: [0.4, 0.6, 0.8, 1],
+      }
+    )
+
+    pageRefs.current.slice(0, numPages).forEach(node => {
+      if (node) observer.observe(node)
+    })
+
+    return () => observer.disconnect()
+  }, [numPages, pdfHeight])
+
+  useEffect(() => {
     if (numPages && numPages > 0) {
-      setPageNumber(1)
-      setPageInput("1")
+      setCurrentPage(1)
     }
   }, [numPages])
-
-  const setPageSafely = (nextPage: number) => {
-    if (!numPages || numPages <= 0) return
-    const clamped = Math.min(numPages, Math.max(1, nextPage))
-    setPageNumber(clamped)
-    setPageInput(String(clamped))
-  }
-
-  const handleWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    if (!numPages || numPages <= 1) return
-
-    const now = Date.now()
-    if (now - lastScrollTimeRef.current < 400) return
-
-    if (event.deltaY > 0 && pageNumber < numPages) {
-      setPageSafely(pageNumber + 1)
-      lastScrollTimeRef.current = now
-    } else if (event.deltaY < 0 && pageNumber > 1) {
-      setPageSafely(pageNumber - 1)
-      lastScrollTimeRef.current = now
-    }
-  }
 
   const handleAiInsights = () => {
     if (typeof window === "undefined") return
@@ -132,6 +143,21 @@ export default function PdfViewer({
     chatWindow.open()
   }
 
+  async function handleLoadSuccess({
+    numPages: loadedNumPages,
+  }: {
+    numPages: number
+  }) {
+    setNumPages(loadedNumPages ?? 0)
+    if (!loadedNumPages || loadedNumPages <= 0) {
+      setPdfText("")
+      return
+    }
+
+    const text = await parsePdfTextFromUrl(url)
+    setPdfText(text)
+  }
+
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
@@ -152,50 +178,12 @@ export default function PdfViewer({
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          {numPages && numPages > 0 && (
-            <div className="flex flex-1 items-center gap-1">
-              <Button
-                variant="outline"
-                onClick={() => setPageSafely(pageNumber - 1)}
-                disabled={pageNumber <= 1}
-                className="h-7 rounded px-2"
-              >
-                ‹
-              </Button>
-              <div className="flex items-center gap-1">
-                <input
-                  min={1}
-                  max={numPages}
-                  value={pageInput}
-                  onChange={e => setPageInput(e.target.value)}
-                  onBlur={() => {
-                    const value = Number(pageInput)
-                    if (!Number.isFinite(value)) {
-                      setPageInput(String(pageNumber))
-                      return
-                    }
-                    setPageSafely(value)
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      ;(e.target as HTMLInputElement).blur()
-                    }
-                  }}
-                  className="h-7 w-14 rounded border px-1 text-center text-xs"
-                />
-                <span className="whitespace-nowrap">/ {numPages}</span>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setPageSafely(pageNumber + 1)}
-                disabled={!numPages || pageNumber >= numPages}
-                className="h-7 rounded px-2"
-              >
-                ›
-              </Button>
-            </div>
-          )}
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          {numPages ? (
+            <span>
+              Page {currentPage} / {numPages}
+            </span>
+          ) : null}
         </div>
 
         <div className="flex w-120 items-center justify-end gap-2 text-xs">
@@ -224,67 +212,85 @@ export default function PdfViewer({
         </div>
       </header>
 
-      <div ref={pdfContainerRef} className="bg-muted/40 flex-1 overflow-hidden">
-        {url && pdfHeight > 0 ? (
-          <div className="flex h-full w-full items-center justify-center py-4">
-            <Document
-              file={url}
-              loading={
-                <div className="text-muted-foreground text-xs">
-                  {t("loading_pdf")}
-                </div>
-              }
-              error={
-                <div className="text-destructive text-xs">{errorLabel}</div>
-              }
-              onLoadSuccess={async ({ numPages: loadedNumPages }) => {
-                setNumPages(loadedNumPages ?? 0)
-                if (!loadedNumPages || loadedNumPages <= 0) {
-                  setPdfText("")
-                  return
-                }
-
-                const text = await parsePdfTextFromUrl(url)
-                setPdfText(text)
-              }}
-            >
-              <div
-                className="flex h-full w-full items-center justify-center px-4"
-                onWheel={handleWheel}
-              >
-                <ContextMenu>
-                  <ContextMenuTrigger asChild>
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Page
-                        pageNumber={pageNumber}
-                        height={pdfHeight}
-                        renderTextLayer
-                        renderAnnotationLayer={false}
-                      />
-                    </div>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuLabel className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                      {t("context_title")}
-                    </ContextMenuLabel>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem onSelect={handleAiInsights}>
-                      {t("ai_insights")}
-                    </ContextMenuItem>
-                    <ContextMenuItem onSelect={handleDeepQuery}>
-                      {t("deep_query")}
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
+      <div ref={pdfContainerRef} className="bg-muted/40 flex-1 overflow-auto">
+        <PDFSuspense url={url} height={pdfHeight}>
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <div className="flex w-full justify-center px-4 py-4">
+                <Document
+                  file={url}
+                  error={<div className="text-destructive">{errorLabel}</div>}
+                  onLoadSuccess={handleLoadSuccess}
+                >
+                  <div className="flex w-full flex-col items-center gap-6">
+                    {numPages &&
+                      Array.from({ length: numPages }, (_, index) => (
+                        <div
+                          key={`page-${index + 1}`}
+                          ref={node => {
+                            pageRefs.current[index] = node
+                          }}
+                          data-page-number={index + 1}
+                          className="flex w-full justify-center"
+                          style={{ minHeight: pdfHeight }}
+                        >
+                          <Page
+                            pageNumber={index + 1}
+                            height={pdfHeight}
+                            renderTextLayer
+                            renderAnnotationLayer
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </Document>
               </div>
-            </Document>
-          </div>
-        ) : (
-          <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
-            {t("no_file")}
-          </div>
-        )}
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuLabel className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                {t("context_title")}
+              </ContextMenuLabel>
+              <ContextMenuSeparator />
+              <ContextMenuItem onSelect={handleAiInsights}>
+                {t("ai_insights")}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={handleDeepQuery}>
+                {t("deep_query")}
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        </PDFSuspense>
       </div>
     </>
   )
+}
+
+function PDFSuspense({
+  url,
+  height,
+  children,
+}: {
+  url: string
+  height: number
+  children: React.ReactNode
+}) {
+  const t = useTranslations("pdf_viewer")
+
+  if (!url) {
+    return (
+      <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
+        {t("no_file")}
+      </div>
+    )
+  }
+
+  if (height <= 0) {
+    return (
+      <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
+        {t("loading_pdf")}
+      </div>
+    )
+  }
+
+  return <>{children}</>
 }
