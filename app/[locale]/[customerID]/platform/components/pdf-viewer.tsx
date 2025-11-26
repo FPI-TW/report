@@ -46,15 +46,14 @@ export default function PdfViewer({
   const t = useTranslations("pdf_viewer")
   const t_dashboard = useTranslations("dashboard")
   const [numPages, setNumPages] = useState<number | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
-
   const [pdfText, setPdfText] = useState("")
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const { chatHightlight, chatWindow } = useChat()
-
-  console.log(pdfHeight)
 
   useEffect(() => {
     if (!pdfContainerRef.current) return
@@ -71,6 +70,42 @@ export default function PdfViewer({
 
     return () => resizeObserver.disconnect()
   }, [url])
+
+  useEffect(() => {
+    if (!pdfContainerRef.current || !numPages) return
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const visibleEntry = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+
+        const pageNumber = Number(
+          visibleEntry?.target.getAttribute("data-page-number")
+        )
+
+        if (Number.isFinite(pageNumber)) {
+          setCurrentPage(pageNumber)
+        }
+      },
+      {
+        root: pdfContainerRef.current,
+        threshold: [0.4, 0.6, 0.8, 1],
+      }
+    )
+
+    pageRefs.current.slice(0, numPages).forEach(node => {
+      if (node) observer.observe(node)
+    })
+
+    return () => observer.disconnect()
+  }, [numPages, pdfHeight])
+
+  useEffect(() => {
+    if (numPages && numPages > 0) {
+      setCurrentPage(1)
+    }
+  }, [numPages])
 
   const handleAiInsights = () => {
     if (typeof window === "undefined") return
@@ -144,7 +179,11 @@ export default function PdfViewer({
         </div>
 
         <div className="text-muted-foreground flex items-center gap-2 text-xs">
-          {numPages ? <span>{numPages} pages</span> : null}
+          {numPages ? (
+            <span>
+              Page {currentPage} / {numPages}
+            </span>
+          ) : null}
         </div>
 
         <div className="flex w-120 items-center justify-end gap-2 text-xs">
@@ -186,13 +225,22 @@ export default function PdfViewer({
                   <div className="flex w-full flex-col items-center gap-6">
                     {numPages &&
                       Array.from({ length: numPages }, (_, index) => (
-                        <Page
+                        <div
                           key={`page-${index + 1}`}
-                          pageNumber={index + 1}
-                          height={pdfHeight}
-                          renderTextLayer
-                          renderAnnotationLayer
-                        />
+                          ref={node => {
+                            pageRefs.current[index] = node
+                          }}
+                          data-page-number={index + 1}
+                          className="flex w-full justify-center"
+                          style={{ minHeight: pdfHeight }}
+                        >
+                          <Page
+                            pageNumber={index + 1}
+                            height={pdfHeight}
+                            renderTextLayer
+                            renderAnnotationLayer
+                          />
+                        </div>
                       ))}
                   </div>
                 </Document>
