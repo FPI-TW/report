@@ -95,13 +95,15 @@ export default function UploadPage() {
         })
 
       if (!presignResp.ok || !presignBody?.ok || !presignBody.uploadUrl) {
-        const message =
-          !presignBody.ok && "message" in presignBody && presignBody.message
-            ? presignBody.message
-            : !presignBody.ok && "error" in presignBody && presignBody.error
-              ? presignBody.error
-              : "Upload failed"
-        throw new Error(message)
+        if ("message" in presignBody && presignBody.message) {
+          throw new Error(presignBody.message)
+        }
+
+        if ("error" in presignBody && presignBody.error) {
+          throw new Error(presignBody.error)
+        }
+
+        throw new Error("Upload failed")
       }
 
       const uploadResp = await fetch(presignBody.uploadUrl as string, {
