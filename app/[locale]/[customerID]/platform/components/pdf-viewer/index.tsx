@@ -309,6 +309,10 @@ function SelectablePdfPage({
   const handlePointerDown = (
     event: React.PointerEvent<HTMLDivElement>
   ): void => {
+    if (event.button !== 0) {
+      return
+    }
+
     const targetElement = event.target as HTMLElement | null
     if (targetElement?.closest("a")) {
       return
@@ -401,18 +405,14 @@ function PDFSuspense({
 }
 
 function beginPointerTracking(
-  moveListenerRef: React.MutableRefObject<
-    ((event: PointerEvent) => void) | undefined
-  >,
-  upListenerRef: React.MutableRefObject<
-    ((event: PointerEvent) => void) | undefined
-  >,
-  dragStateRef: React.MutableRefObject<{
+  moveListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
+  upListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
+  dragStateRef: React.RefObject<{
     origin: { x: number; y: number }
     containerRect: DOMRect
     isActive: boolean
   } | null>,
-  pageContentRef: React.MutableRefObject<HTMLDivElement | null>,
+  pageContentRef: React.RefObject<HTMLDivElement | null>,
   setDragOverlay: React.Dispatch<React.SetStateAction<OverlayRect | null>>
 ) {
   const handlePointerMove = (event: PointerEvent) => {
@@ -463,12 +463,8 @@ function beginPointerTracking(
 }
 
 function detachPointerListeners(
-  moveListenerRef: React.MutableRefObject<
-    ((event: PointerEvent) => void) | undefined
-  >,
-  upListenerRef: React.MutableRefObject<
-    ((event: PointerEvent) => void) | undefined
-  >
+  moveListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
+  upListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>
 ) {
   if (moveListenerRef.current) {
     window.removeEventListener("pointermove", moveListenerRef.current)
