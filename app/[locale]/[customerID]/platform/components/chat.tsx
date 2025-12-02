@@ -1,11 +1,15 @@
 "use client"
 
 import type { KeyboardEvent, MouseEvent, UIEvent } from "react"
+import useChat from "../hooks/useChat"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useDragControls } from "motion/react"
-import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
-import useChat from "../hooks/useChat"
+
+import MarkdownPreview from "@uiw/react-markdown-preview"
+import "@/app/[locale]/[customerID]/platform/markdown.css"
+import { cn } from "@/lib/utils"
 
 type ChatMessageRole = "user" | "assistant" | "system"
 
@@ -420,11 +424,12 @@ function ChatWindow({
                 }`}
               >
                 <div
-                  className={`max-w-[85%] rounded-md border px-2 py-1 leading-relaxed whitespace-pre-wrap ${
+                  className={cn(
+                    "max-w-[85%] rounded-md border px-2 py-1 leading-relaxed",
                     message.direction === "outgoing"
                       ? "bg-muted/60 text-foreground border-border"
                       : "bg-muted/60 text-foreground border-primary/20"
-                  }`}
+                  )}
                 >
                   {message.role === "assistant" &&
                   !message.message.trim() &&
@@ -436,7 +441,12 @@ function ChatWindow({
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current delay-300" />
                     </span>
                   ) : (
-                    message.message
+                    <MarkdownPreview
+                      source={message.message}
+                      className="text-sm leading-normal"
+                      style={{ backgroundColor: "transparent" }}
+                      wrapperElement={{ "data-color-mode": "light" }}
+                    />
                   )}
                 </div>
               </div>

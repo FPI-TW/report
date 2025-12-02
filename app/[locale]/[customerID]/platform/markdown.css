@@ -1,0 +1,107 @@
+/* 宣告這是屬於 Tailwind內的設定，避免視為為獨立的 CSS 檔案解析 */
+@reference "../../../globals.css"
+
+@layer components {
+  .markdown-preview {
+    /* Base GitHub-like typography */
+    @apply bg-background text-foreground space-y-4 rounded-md leading-7;
+  }
+
+  /* Font families */
+  .markdown-font-system {
+    @apply font-sans;
+  }
+  .markdown-font-serif {
+    @apply font-serif;
+  }
+  .markdown-font-mono {
+    @apply font-mono;
+  }
+
+  /* Size presets */
+  .markdown-size-sm {
+    @apply text-sm;
+  }
+  .markdown-size-md {
+    @apply text-base;
+  }
+  .markdown-size-lg {
+    @apply text-lg;
+  }
+
+  .markdown-preview h1 {
+    @apply mt-2 text-3xl font-semibold tracking-tight;
+  }
+
+  .markdown-preview h2 {
+    @apply mt-8 border-b pb-1 text-2xl font-semibold;
+  }
+
+  .markdown-preview h3 {
+    @apply mt-6 text-xl font-semibold;
+  }
+
+  .markdown-preview h4,
+  .markdown-preview h5,
+  .markdown-preview h6 {
+    @apply mt-4 text-lg font-semibold;
+  }
+
+  .markdown-preview p {
+    @apply text-foreground/90 leading-7;
+  }
+
+  .markdown-preview blockquote {
+    @apply border-border/80 bg-muted/40 text-foreground/90 rounded-md border-l-4 px-4 py-3 italic;
+  }
+
+  .markdown-preview pre {
+    @apply bg-muted text-foreground/90 overflow-auto rounded-md p-4 text-sm leading-6;
+  }
+
+  .markdown-preview code {
+    @apply bg-muted rounded px-1.5 py-0.5 text-[0.85em] font-medium;
+  }
+
+  .markdown-preview a {
+    @apply text-primary hover:text-primary/80 underline decoration-dotted underline-offset-2 transition-colors;
+  }
+
+  .markdown-preview ul {
+    @apply list-disc space-y-2 pl-5;
+  }
+
+  .markdown-preview ol {
+    @apply list-decimal space-y-2 pl-5;
+  }
+
+  .markdown-preview hr {
+    @apply border-border my-6;
+  }
+
+  .markdown-preview img {
+    @apply border-border rounded-lg border;
+  }
+
+  /* Basic tables */
+  .markdown-preview table {
+    @apply w-full border-collapse text-sm;
+  }
+  .markdown-preview thead th {
+    @apply border-border border-b p-2 text-left font-medium;
+  }
+  .markdown-preview tbody td {
+    @apply border-border border-b p-2 align-top;
+  }
+
+  /* Basic form elements for embedded HTML previews (escaped by default) */
+  .markdown-preview input,
+  .markdown-preview select,
+  .markdown-preview textarea,
+  .markdown-preview button {
+    @apply border-border bg-background rounded-md border px-3 py-1.5 text-sm shadow-sm;
+  }
+  .markdown-preview button {
+    @apply bg-muted hover:bg-muted/80 transition-colors;
+  }
+}
