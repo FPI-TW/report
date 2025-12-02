@@ -21,6 +21,7 @@ import Chat from "../chat"
 import type { ReportType } from "../../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
+import useZoom from "./hooks/useZoom"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -50,6 +51,8 @@ export default function PdfViewer({
   const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
   const [pdfText, setPdfText] = useState("")
+  const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
+    useZoom()
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -159,6 +162,8 @@ export default function PdfViewer({
     setPdfText(text)
   }
 
+  const pageHeight = pdfHeight > 0 ? pdfHeight * appliedZoom : 0
+
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
@@ -187,18 +192,32 @@ export default function PdfViewer({
           ) : null}
         </div>
 
-        <div className="flex w-120 items-center justify-end gap-2 text-xs">
-          {url && (
-            <a
-              href={url}
-              download={title || "document.pdf"}
-              rel="noopener noreferrer"
+        <div className="flex w-120 items-center justify-end gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-6 rounded"
+              onClick={() => handleZoomChange(-zoomStep)}
+              disabled={zoom <= minZoom}
+              aria-label="Zoom out"
             >
-              <Button variant="link" className="h-7 rounded">
-                {t("download")}
-              </Button>
-            </a>
-          )}
+              -
+            </Button>
+            <p className="text-muted-foreground px-2 text-center text-sm font-semibold">
+              {Math.round(zoom * 100)}%
+            </p>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-6 rounded"
+              onClick={() => handleZoomChange(zoomStep)}
+              disabled={zoom >= maxZoom}
+              aria-label="Zoom in"
+            >
+              +
+            </Button>
+          </div>
           <Button
             variant="outline"
             onClick={() => {
@@ -214,7 +233,7 @@ export default function PdfViewer({
       </header>
 
       <div ref={pdfContainerRef} className="bg-muted/40 flex-1 overflow-auto">
-        <PDFSuspense url={url} height={pdfHeight}>
+        <PDFSuspense url={url} height={pageHeight}>
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <div className="flex w-full justify-center px-4 py-4">
@@ -229,7 +248,7 @@ export default function PdfViewer({
                         <SelectablePdfPage
                           key={`page-${index + 1}`}
                           pageNumber={index + 1}
-                          height={pdfHeight}
+                          height={pageHeight}
                           registerPageRef={node => {
                             pageRefs.current[index] = node
                           }}
