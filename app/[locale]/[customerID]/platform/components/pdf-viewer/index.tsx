@@ -21,6 +21,12 @@ import Chat from "../chat"
 import type { ReportType } from "../../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
+import useZoom from "./hooks/useZoom"
+import {
+  beginPointerTracking,
+  detachPointerListeners,
+  type OverlayRect,
+} from "./lib/selection"
 
 if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
@@ -50,6 +56,8 @@ export default function PdfViewer({
   const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
   const [pdfText, setPdfText] = useState("")
+  const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
+    useZoom()
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -159,6 +167,8 @@ export default function PdfViewer({
     setPdfText(text)
   }
 
+  const pageHeight = pdfHeight > 0 ? pdfHeight * appliedZoom : 0
+
   return (
     <>
       <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
@@ -187,18 +197,32 @@ export default function PdfViewer({
           ) : null}
         </div>
 
-        <div className="flex w-120 items-center justify-end gap-2 text-xs">
-          {url && (
-            <a
-              href={url}
-              download={title || "document.pdf"}
-              rel="noopener noreferrer"
+        <div className="flex w-120 items-center justify-end gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-6 rounded"
+              onClick={() => handleZoomChange(-zoomStep)}
+              disabled={zoom <= minZoom}
+              aria-label="Zoom out"
             >
-              <Button variant="link" className="h-7 rounded">
-                {t("download")}
-              </Button>
-            </a>
-          )}
+              -
+            </Button>
+            <p className="text-muted-foreground px-2 text-center text-sm font-semibold">
+              {Math.round(zoom * 100)}%
+            </p>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-6 rounded"
+              onClick={() => handleZoomChange(zoomStep)}
+              disabled={zoom >= maxZoom}
+              aria-label="Zoom in"
+            >
+              +
+            </Button>
+          </div>
           <Button
             variant="outline"
             onClick={() => {
@@ -214,7 +238,7 @@ export default function PdfViewer({
       </header>
 
       <div ref={pdfContainerRef} className="bg-muted/40 flex-1 overflow-auto">
-        <PDFSuspense url={url} height={pdfHeight}>
+        <PDFSuspense url={url} height={pageHeight}>
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <div className="flex w-full justify-center px-4 py-4">
@@ -229,7 +253,7 @@ export default function PdfViewer({
                         <SelectablePdfPage
                           key={`page-${index + 1}`}
                           pageNumber={index + 1}
-                          height={pdfHeight}
+                          height={pageHeight}
                           registerPageRef={node => {
                             pageRefs.current[index] = node
                           }}
@@ -256,26 +280,6 @@ export default function PdfViewer({
       </div>
     </>
   )
-}
-
-type DragSelectionRect = {
-  left: number
-  right: number
-  top: number
-  bottom: number
-}
-
-type OverlayRect = {
-  left: number
-  top: number
-  width: number
-  height: number
-}
-
-type SpanSelection = {
-  node: HTMLSpanElement
-  startOffset: number
-  endOffset: number
 }
 
 function SelectablePdfPage({
@@ -402,192 +406,4 @@ function PDFSuspense({
   }
 
   return <>{children}</>
-}
-
-function beginPointerTracking(
-  moveListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
-  upListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
-  dragStateRef: React.RefObject<{
-    origin: { x: number; y: number }
-    containerRect: DOMRect
-    isActive: boolean
-  } | null>,
-  pageContentRef: React.RefObject<HTMLDivElement | null>,
-  setDragOverlay: React.Dispatch<React.SetStateAction<OverlayRect | null>>
-) {
-  const handlePointerMove = (event: PointerEvent) => {
-    const dragState = dragStateRef.current
-    if (!dragState) return
-
-    const distance = Math.hypot(
-      event.clientX - dragState.origin.x,
-      event.clientY - dragState.origin.y
-    )
-    if (!dragState.isActive && distance < 3) return
-
-    if (!dragState.isActive) {
-      dragState.isActive = true
-    }
-
-    const overlay = calculateOverlayRect(
-      dragState.origin,
-      { x: event.clientX, y: event.clientY },
-      dragState.containerRect
-    )
-    setDragOverlay(overlay)
-    event.preventDefault()
-  }
-
-  const handlePointerEnd = (event: PointerEvent) => {
-    const dragState = dragStateRef.current
-    detachPointerListeners(moveListenerRef, upListenerRef)
-    dragStateRef.current = null
-
-    if (dragState?.isActive && pageContentRef.current) {
-      const selectionRect = normalizeClientRect(dragState.origin, {
-        x: event.clientX,
-        y: event.clientY,
-      })
-      selectOverlappingText(pageContentRef.current, selectionRect)
-      event.preventDefault()
-    }
-
-    setDragOverlay(null)
-  }
-
-  moveListenerRef.current = handlePointerMove
-  upListenerRef.current = handlePointerEnd
-  window.addEventListener("pointermove", handlePointerMove)
-  window.addEventListener("pointerup", handlePointerEnd)
-  window.addEventListener("pointercancel", handlePointerEnd)
-}
-
-function detachPointerListeners(
-  moveListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
-  upListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>
-) {
-  if (moveListenerRef.current) {
-    window.removeEventListener("pointermove", moveListenerRef.current)
-  }
-  if (upListenerRef.current) {
-    window.removeEventListener("pointerup", upListenerRef.current)
-    window.removeEventListener("pointercancel", upListenerRef.current)
-  }
-
-  moveListenerRef.current = undefined
-  upListenerRef.current = undefined
-}
-
-function normalizeClientRect(
-  firstPoint: { x: number; y: number },
-  secondPoint: { x: number; y: number }
-): DragSelectionRect {
-  return {
-    left: Math.min(firstPoint.x, secondPoint.x),
-    right: Math.max(firstPoint.x, secondPoint.x),
-    top: Math.min(firstPoint.y, secondPoint.y),
-    bottom: Math.max(firstPoint.y, secondPoint.y),
-  }
-}
-
-function calculateOverlayRect(
-  origin: { x: number; y: number },
-  current: { x: number; y: number },
-  containerRect: DOMRect
-): OverlayRect {
-  const left = Math.min(origin.x, current.x) - containerRect.left
-  const top = Math.min(origin.y, current.y) - containerRect.top
-  const width = Math.abs(current.x - origin.x)
-  const height = Math.abs(current.y - origin.y)
-
-  return { left, top, width, height }
-}
-
-function selectOverlappingText(
-  container: HTMLDivElement,
-  selectionRect: DragSelectionRect
-) {
-  const selection = window.getSelection()
-  selection?.removeAllRanges()
-
-  const textLayer = container.querySelector<HTMLDivElement>(
-    ".react-pdf__Page__textContent"
-  )
-  if (!textLayer) return
-
-  const spanSelections = Array.from(
-    textLayer.querySelectorAll<HTMLSpanElement>("span")
-  )
-    .map(span => calculateSpanSelection(span, selectionRect))
-    .filter(Boolean) as SpanSelection[]
-
-  if (!selection || !spanSelections.length) return
-
-  const first = spanSelections.at(0)
-  const last = spanSelections.at(-1)
-  if (!first || !last) return
-  const firstTextNode = first.node.firstChild
-  const lastTextNode = last.node.firstChild
-
-  if (!firstTextNode || !lastTextNode) return
-
-  const range = document.createRange()
-  range.setStart(firstTextNode, first.startOffset)
-  range.setEnd(lastTextNode, last.endOffset)
-  selection.addRange(range)
-}
-
-function calculateSpanSelection(
-  span: HTMLSpanElement,
-  selectionRect: DragSelectionRect
-): SpanSelection | null {
-  const rect = span.getBoundingClientRect()
-  if (!rect.width || !rect.height) return null
-  if (!isOverlap(selectionRect, rect)) return null
-
-  const textContent = span.textContent ?? ""
-  if (!textContent.length) return null
-
-  const startBoundary = Math.max(rect.left, selectionRect.left)
-  const endBoundary = Math.min(rect.right, selectionRect.right)
-  const normalizedStart =
-    rect.width > 0 ? (startBoundary - rect.left) / rect.width : 0
-  const normalizedEnd =
-    rect.width > 0 ? (endBoundary - rect.left) / rect.width : 1
-
-  const startOffset = clamp(
-    Math.floor(textContent.length * Math.min(normalizedStart, normalizedEnd)),
-    0,
-    textContent.length
-  )
-  const rawEndOffset = clamp(
-    Math.ceil(textContent.length * Math.max(normalizedStart, normalizedEnd)),
-    0,
-    textContent.length
-  )
-
-  return {
-    node: span,
-    startOffset,
-    endOffset:
-      startOffset === rawEndOffset && textContent.length > 0
-        ? Math.min(textContent.length, startOffset + 1)
-        : rawEndOffset,
-  }
-}
-
-function isOverlap(
-  selectionRect: DragSelectionRect,
-  elementRect: DOMRect
-): boolean {
-  return !(
-    elementRect.right < selectionRect.left ||
-    elementRect.left > selectionRect.right ||
-    elementRect.bottom < selectionRect.top ||
-    elementRect.top > selectionRect.bottom
-  )
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max)
 }
