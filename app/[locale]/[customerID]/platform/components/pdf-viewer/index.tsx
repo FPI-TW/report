@@ -3,6 +3,7 @@
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
+import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
 import { toast } from "sonner"
@@ -288,62 +289,46 @@ function SelectablePdfPage({
 }) {
   const [dragOverlay, setDragOverlay] = useState<OverlayRect | null>(null)
   const pageContainerRef = useRef<HTMLDivElement | null>(null)
+  const pageContentRef = useRef<HTMLDivElement | null>(null)
   const dragStateRef = useRef<{
     origin: { x: number; y: number }
     containerRect: DOMRect
+    isActive: boolean
   } | null>(null)
+  const moveListenerRef = useRef<((event: PointerEvent) => void) | undefined>(
+    undefined
+  )
+  const upListenerRef = useRef<((event: PointerEvent) => void) | undefined>(
+    undefined
+  )
+
+  useEffect(() => {
+    return () => detachPointerListeners(moveListenerRef, upListenerRef)
+  }, [])
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLDivElement>
   ): void => {
-    console.log("Pointer down", event.clientX, event.clientY)
-    if (!pageContainerRef.current) return
-    const containerRect = pageContainerRef.current.getBoundingClientRect()
+    const targetElement = event.target as HTMLElement | null
+    if (targetElement?.closest("a")) {
+      return
+    }
+    if (!pageContentRef.current) return
+    event.preventDefault()
+    window.getSelection()?.removeAllRanges()
+    const containerRect = pageContentRef.current.getBoundingClientRect()
     dragStateRef.current = {
       origin: { x: event.clientX, y: event.clientY },
       containerRect,
+      isActive: false,
     }
-    setDragOverlay({
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0,
-    })
-    event.currentTarget.setPointerCapture(event.pointerId)
-    event.preventDefault()
-  }
-
-  const handlePointerMove = (
-    event: React.PointerEvent<HTMLDivElement>
-  ): void => {
-    console.log("Pointer move", event.clientX, event.clientY)
-    if (!dragStateRef.current) return
-
-    const { origin, containerRect } = dragStateRef.current
-    const overlay = calculateOverlayRect(
-      origin,
-      { x: event.clientX, y: event.clientY },
-      containerRect
+    beginPointerTracking(
+      moveListenerRef,
+      upListenerRef,
+      dragStateRef,
+      pageContentRef,
+      setDragOverlay
     )
-    setDragOverlay(overlay)
-  }
-
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>): void => {
-    const dragState = dragStateRef.current
-    dragStateRef.current = null
-    setDragOverlay(null)
-
-    if (!dragState || !pageContainerRef.current) return
-
-    const selectionRect = normalizeClientRect(dragState.origin, {
-      x: event.clientX,
-      y: event.clientY,
-    })
-    selectOverlappingText(pageContainerRef.current, selectionRect)
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
   }
 
   return (
@@ -353,22 +338,21 @@ function SelectablePdfPage({
         registerPageRef?.(node)
       }}
       data-page-number={pageNumber}
-      className="flex w-full justify-center bg-yellow-300/40"
+      className="flex w-full justify-center"
       style={{ minHeight: height }}
     >
-      <div className="relative inline-block">
+      <div
+        ref={pageContentRef}
+        className="relative inline-block"
+        onPointerDownCapture={handlePointerDown}
+      >
         <Page
           pageNumber={pageNumber}
           height={height}
           renderTextLayer
           renderAnnotationLayer
         />
-        <div
-          className="absolute inset-0 z-10 cursor-crosshair"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-        >
+        <div className="pointer-events-none absolute inset-0 cursor-crosshair">
           {dragOverlay ? (
             <div
               className="border-primary/70 bg-primary/10 pointer-events-none absolute rounded border"
@@ -414,6 +398,88 @@ function PDFSuspense({
   }
 
   return <>{children}</>
+}
+
+function beginPointerTracking(
+  moveListenerRef: React.MutableRefObject<
+    ((event: PointerEvent) => void) | undefined
+  >,
+  upListenerRef: React.MutableRefObject<
+    ((event: PointerEvent) => void) | undefined
+  >,
+  dragStateRef: React.MutableRefObject<{
+    origin: { x: number; y: number }
+    containerRect: DOMRect
+    isActive: boolean
+  } | null>,
+  pageContentRef: React.MutableRefObject<HTMLDivElement | null>,
+  setDragOverlay: React.Dispatch<React.SetStateAction<OverlayRect | null>>
+) {
+  const handlePointerMove = (event: PointerEvent) => {
+    const dragState = dragStateRef.current
+    if (!dragState) return
+
+    const distance = Math.hypot(
+      event.clientX - dragState.origin.x,
+      event.clientY - dragState.origin.y
+    )
+    if (!dragState.isActive && distance < 3) return
+
+    if (!dragState.isActive) {
+      dragState.isActive = true
+    }
+
+    const overlay = calculateOverlayRect(
+      dragState.origin,
+      { x: event.clientX, y: event.clientY },
+      dragState.containerRect
+    )
+    setDragOverlay(overlay)
+    event.preventDefault()
+  }
+
+  const handlePointerEnd = (event: PointerEvent) => {
+    const dragState = dragStateRef.current
+    detachPointerListeners(moveListenerRef, upListenerRef)
+    dragStateRef.current = null
+
+    if (dragState?.isActive && pageContentRef.current) {
+      const selectionRect = normalizeClientRect(dragState.origin, {
+        x: event.clientX,
+        y: event.clientY,
+      })
+      selectOverlappingText(pageContentRef.current, selectionRect)
+      event.preventDefault()
+    }
+
+    setDragOverlay(null)
+  }
+
+  moveListenerRef.current = handlePointerMove
+  upListenerRef.current = handlePointerEnd
+  window.addEventListener("pointermove", handlePointerMove)
+  window.addEventListener("pointerup", handlePointerEnd)
+  window.addEventListener("pointercancel", handlePointerEnd)
+}
+
+function detachPointerListeners(
+  moveListenerRef: React.MutableRefObject<
+    ((event: PointerEvent) => void) | undefined
+  >,
+  upListenerRef: React.MutableRefObject<
+    ((event: PointerEvent) => void) | undefined
+  >
+) {
+  if (moveListenerRef.current) {
+    window.removeEventListener("pointermove", moveListenerRef.current)
+  }
+  if (upListenerRef.current) {
+    window.removeEventListener("pointerup", upListenerRef.current)
+    window.removeEventListener("pointercancel", upListenerRef.current)
+  }
+
+  moveListenerRef.current = undefined
+  upListenerRef.current = undefined
 }
 
 function normalizeClientRect(
