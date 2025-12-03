@@ -23,7 +23,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
   const locale = useLocale()
   const loginSchema = z.object({
     account: z.string().min(1, t("account_required")),
-    password: z.string().min(6, t("password_min")),
+    password: z.string().min(5, t("password_min")),
   })
   const {
     register,
