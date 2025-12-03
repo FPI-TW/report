@@ -6,8 +6,7 @@ import Image from "next/image"
 const fallbackSrc = "/image/background.webp"
 
 export default function Background({ customerID }: { customerID: string }) {
-  const initialSrc =
-    customerID === "tingfong" ? fallbackSrc : `/${customerID}/background.webp`
+  const initialSrc = `/${customerID}/background.webp`
   const [src, setSrc] = useState(initialSrc)
 
   return (
