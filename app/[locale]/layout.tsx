@@ -7,6 +7,7 @@ import {
   getTimeZone,
   setRequestLocale,
 } from "next-intl/server"
+import { Analytics } from "@vercel/analytics/next"
 
 // Style
 import "../globals.css"
@@ -49,6 +50,7 @@ export default async function RootLayout({
         <Provider locale={locale} messages={messages} timeZone={timeZone}>
           {children}
         </Provider>
+        <Analytics />
       </body>
     </html>
   )
