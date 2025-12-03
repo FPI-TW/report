@@ -76,7 +76,9 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       {/* backdrop for readability */}
       <div className="space-y-4 bg-[#e5e5e5]/95 px-4 py-5 backdrop-blur-sm sm:p-6 md:space-y-5 md:p-8">
         <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
-          {t(customerID)}-{t("login_title")}
+          {customerID === "tingfong"
+            ? "廷豐金融科技報告機器人"
+            : `${t(customerID)}-{t("login_title")}`}
         </h2>
 
         <div className="space-y-4">
