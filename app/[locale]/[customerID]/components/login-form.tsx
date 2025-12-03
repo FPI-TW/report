@@ -72,14 +72,9 @@ export default function LoginForm({ customerID }: LoginFormProps) {
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="relative mx-4 w-3/4 max-w-sm overflow-hidden rounded-xl shadow-2xl ring-1 ring-black/5 backdrop-blur-[1px] sm:mx-6 sm:w-full md:mx-0"
-      style={{
-        backgroundImage: `url('/${customerID}/background.webp')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
     >
       {/* backdrop for readability */}
-      <div className="space-y-4 bg-white/80 px-4 py-5 backdrop-blur-sm sm:px-6 sm:py-8 md:space-y-5 md:px-8 md:py-10">
+      <div className="space-y-4 bg-[#e5e5e5]/95 px-4 py-5 backdrop-blur-sm sm:p-6 md:space-y-5 md:p-8">
         <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
           {t(customerID)}-{t("login_title")}
         </h2>

@@ -105,7 +105,10 @@
     "invalid_credentials": "Invalid credentials",
     "account_required": "Account is required",
     "password_min": "Password must be at least 6 characters",
-    "cuam": "China Universal Asset Management"
+    "cuam": "China Universal Asset Management",
+    "forthright": "Forthright",
+    "vcgroup": "VC Group",
+    "zhukuangroup": "Zhukuang Group"
   },
   "dashboard_admin": {
     "login_title": "Internal Dashboard Login",
