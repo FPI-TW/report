@@ -105,7 +105,11 @@
     "invalid_credentials": "帳號或密碼錯誤",
     "account_required": "請輸入帳號",
     "password_min": "密碼至少需 6 碼",
-    "cuam": "滙添富"
+    "tingfong": "廷豐金融科技",
+    "cuam": "滙添富",
+    "forthright": "方德",
+    "vcgroup": "滙盈集團",
+    "zhukuan": "珠光集團"
   },
   "dashboard_admin": {
     "login_title": "內部後台登入",
