@@ -28,7 +28,7 @@ type ApiResponse = {
 }
 
 const BRAND = "#ddae58" as const
-const months = 2 as const
+const months = 3 as const
 
 function monthLabel(m: number) {
   return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
@@ -118,7 +118,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="relative space-y-12">
+        <div className="relative space-y-16">
           {isLoading && <p className="text-sm text-gray-700">{t("loading")}</p>}
           {isError && <p className="text-sm text-red-600">{t("error")}</p>}
           {data && data.groups.length === 0 && !isLoading && !isError && (
