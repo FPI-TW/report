@@ -8,6 +8,7 @@ import {
   setRequestLocale,
 } from "next-intl/server"
 import { Analytics } from "@vercel/analytics/next"
+import { GoogleAnalytics } from "@next/third-parties/google"
 
 // Style
 import "../globals.css"
@@ -26,8 +27,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "廷豐",
-  description: "Gerand Empire AI",
+  title: "廷豐報告機器人生成式AI系統",
+  description: "Gerand Empire report AI",
 }
 
 export default async function RootLayout({
@@ -51,6 +52,7 @@ export default async function RootLayout({
           {children}
         </Provider>
         <Analytics />
+        <GoogleAnalytics gaId="G-53LH8QPLVW" />
       </body>
     </html>
   )
