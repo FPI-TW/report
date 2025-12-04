@@ -51,8 +51,12 @@ export default async function RootLayout({
         <Provider locale={locale} messages={messages} timeZone={timeZone}>
           {children}
         </Provider>
-        <Analytics />
-        <GoogleAnalytics gaId="G-53LH8QPLVW" />
+        {process.env.NODE_ENV !== "development" && (
+          <>
+            <Analytics />
+            <GoogleAnalytics gaId="G-53LH8QPLVW" />
+          </>
+        )}
       </body>
     </html>
   )
