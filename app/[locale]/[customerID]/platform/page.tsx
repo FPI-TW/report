@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Tabs from "./components/tabs"
 import { queryReportByType, type ReportType } from "./lib/query-report-by-type"
 import WarningAlert from "./components/warningAlert"
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import SettingsDialog from "./components/settings-dialog"
 import useDialog from "@/hooks/useDialog"
 import { Button } from "@/components/ui/button"
+import { updateParams } from "@/lib/updateParams"
 
 const PdfItem = dynamic(() => import("./components/pdf-item"), {
   ssr: false,
@@ -57,6 +58,12 @@ export default function DashboardPage() {
     queryFn: () => queryReportByType(type, page, months),
   })
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const type = params.get("reportType")
+    if (!type) updateParams({ reportType: "daily-report" })
+  }, [])
+
   return (
     <div className="relative mx-auto flex h-screen max-w-7xl flex-col">
       {/* Scrollable content area */}
@@ -86,6 +93,7 @@ export default function DashboardPage() {
             onChange={v => {
               setType(v)
               setPage(1)
+              updateParams({ reportType: v })
             }}
           />
 
