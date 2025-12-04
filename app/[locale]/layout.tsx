@@ -54,7 +54,7 @@ export default async function RootLayout({
         {process.env.NODE_ENV !== "development" && (
           <>
             <Analytics />
-            <GoogleAnalytics gaId="G-8YECV99DK7" />
+            <GoogleAnalytics gaId="G-3WBP4X8RFS" />
           </>
         )}
       </body>
