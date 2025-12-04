@@ -21,6 +21,7 @@
     "@aws-sdk/client-s3": "^3.701.0",
     "@aws-sdk/s3-request-presigner": "^3.701.0",
     "@chatscope/use-chat": "^3.1.2",
+    "@next/third-parties": "^16.0.7",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-dialog": "^1.1.15",
