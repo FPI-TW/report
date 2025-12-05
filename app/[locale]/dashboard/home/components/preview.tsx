@@ -1,13 +1,17 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 import {
   BRAND,
   PREVIEW_MONTHS,
   REPORT_CATEGORIES,
   type ReportCategory,
 } from "./constants"
+import { ReportsApi } from "@/lib/api"
+import useDialog from "@/hooks/useDialog"
 
 type PreviewItem = { key: string; date: string; url: string }
 type PreviewGroup = { year: number; month: number; items: PreviewItem[] }
@@ -18,6 +22,11 @@ type PreviewResponse = {
   hasNext: boolean
   groups: PreviewGroup[]
   totalGroups: number
+}
+
+type DeleteTarget = {
+  item: PreviewItem
+  displayName: string
 }
 
 function monthLabel(m: number) {
@@ -55,6 +64,8 @@ export default function PreviewSection({
 }: PreviewSectionProps) {
   const tHome = useTranslations("dashboard_home")
   const tDash = useTranslations("dashboard")
+  const confirmDialog = useDialog()
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
   const {
     data: previewData,
@@ -67,6 +78,39 @@ export default function PreviewSection({
     queryFn: () => fetchReports(category, page, PREVIEW_MONTHS),
     enabled: isActive,
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (key: string) => {
+      const { response, data } = await ReportsApi.deleteReport(key)
+      if (!response.ok || !("ok" in data) || !data.ok) {
+        throw new Error("delete_failed")
+      }
+      return data
+    },
+    onSuccess: () => {
+      toast.success(tHome("preview_delete_success"))
+      closeDialog()
+      refetchPreview()
+    },
+    onError: () => {
+      toast.error(tHome("preview_delete_error"))
+    },
+  })
+
+  const askDelete = (item: PreviewItem, displayName: string) => {
+    setDeleteTarget({ item, displayName })
+    confirmDialog.open()
+  }
+
+  const closeDialog = () => {
+    setDeleteTarget(null)
+    confirmDialog.close()
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    deleteMutation.mutate(deleteTarget.item.key)
+  }
 
   return (
     <div className="space-y-6">
@@ -188,14 +232,14 @@ export default function PreviewSection({
                         </p>
                         <p className="text-xs text-gray-600">{item.date}</p>
                       </div>
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 text-xs font-medium text-blue-700 underline"
+                      <button
+                        type="button"
+                        className="shrink-0 text-xs font-medium text-red-700 underline disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => askDelete(item, fileName)}
+                        disabled={deleteMutation.isPending}
                       >
-                        {tHome("preview_link_label")}
-                      </a>
+                        {tHome("preview_delete")}
+                      </button>
                     </div>
                   )
                 })}
@@ -203,6 +247,45 @@ export default function PreviewSection({
             </section>
           ))}
       </div>
+
+      {confirmDialog.isOpen && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm space-y-4 rounded-lg bg-white p-5 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {tHome("preview_confirm_title")}
+            </h3>
+            <p className="text-sm text-gray-700">
+              {tHome("preview_confirm_message")}
+            </p>
+            <div className="rounded bg-gray-50 p-2 text-xs text-gray-800">
+              <div className="font-semibold">{deleteTarget.displayName}</div>
+              <div className="mt-1 font-mono text-[11px] break-all text-gray-700">
+                {deleteTarget.item.key}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeDialog}
+                className="rounded border px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                disabled={deleteMutation.isPending}
+              >
+                {tHome("preview_cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                className="rounded bg-red-600 px-3 py-1 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {deleteMutation.isPending
+                  ? tHome("preview_deleting")
+                  : tHome("preview_confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

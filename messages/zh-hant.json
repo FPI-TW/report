@@ -128,7 +128,14 @@
     "preview_empty": "此類別尚無檔案。",
     "preview_error": "載入檔案失敗，請再試一次。",
     "preview_loading": "正在載入檔案...",
-    "preview_link_label": "開啟檔案"
+    "preview_delete": "刪除檔案",
+    "preview_confirm_title": "確認刪除檔案？",
+    "preview_confirm_message": "此動作會從 R2 移除檔案且無法復原。",
+    "preview_confirm": "刪除",
+    "preview_deleting": "刪除中...",
+    "preview_cancel": "取消",
+    "preview_delete_success": "檔案已刪除。",
+    "preview_delete_error": "刪除失敗，請再試一次。"
   },
   "dashboard_upload": {
     "title": "上傳報告",

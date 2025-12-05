@@ -127,7 +127,14 @@
     "preview_empty": "该类别暂无文件。",
     "preview_error": "加载文件失败，请重试。",
     "preview_loading": "正在加载文件...",
-    "preview_link_label": "打开文件"
+    "preview_delete": "删除文件",
+    "preview_confirm_title": "确认删除文件？",
+    "preview_confirm_message": "此操作会从 R2 删除文件且无法恢复。",
+    "preview_confirm": "删除",
+    "preview_deleting": "删除中...",
+    "preview_cancel": "取消",
+    "preview_delete_success": "已删除文件。",
+    "preview_delete_error": "删除失败，请重试。"
   },
   "dashboard_upload": {
     "title": "上传报告",

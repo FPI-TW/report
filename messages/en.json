@@ -128,7 +128,14 @@
     "preview_empty": "No files found for this category yet.",
     "preview_error": "Could not load files. Please try again.",
     "preview_loading": "Loading files...",
-    "preview_link_label": "Open file"
+    "preview_delete": "Delete file",
+    "preview_confirm_title": "Delete file?",
+    "preview_confirm_message": "This will remove the file from R2. This action cannot be undone.",
+    "preview_confirm": "Delete",
+    "preview_deleting": "Deleting...",
+    "preview_cancel": "Cancel",
+    "preview_delete_success": "File deleted.",
+    "preview_delete_error": "Delete failed. Please try again."
   },
   "dashboard_upload": {
     "title": "Upload Reports",
