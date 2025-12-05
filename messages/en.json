@@ -109,7 +109,10 @@
     "cuam": "China Universal Asset Management",
     "forthright": "Forthright",
     "vcgroup": "VC Group",
-    "zhukuan": "Zhukuan Group"
+    "zhukuan": "Zhukuan Group",
+    "beigehill": "Beige Hill",
+    "hminvestment": "Hminvestment",
+    "omnisunton": "Omni Sunton"
   },
   "dashboard_admin": {
     "login_title": "Internal Dashboard Login",
