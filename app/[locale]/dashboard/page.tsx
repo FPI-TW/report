@@ -40,7 +40,7 @@ export default function DashboardLoginPage() {
       setError(message)
       return
     }
-    router.replace(`/${locale}/dashboard/upload`)
+    router.replace(`/${locale}/dashboard/home`)
   }
 
   return (
