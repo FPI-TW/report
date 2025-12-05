@@ -57,6 +57,8 @@
     "lang_en": "English",
     "lang_zh_hant": "Traditional Chinese",
     "lang_zh_hans": "Simplified Chinese",
+    "user_guide": "User guide",
+    "user_guide_title": "Platform user guide",
     "logout": "Log out",
     "logout_success": "Logged out.",
     "logout_error": "Could not log out. Please try again.",
@@ -91,6 +93,17 @@
     "context_title": "AI tools",
     "ai_insights": "AI Insights",
     "deep_query": "Deep query"
+  },
+  "guide_viewer": {
+    "title": "User guide",
+    "page_counter": "Page {current} / {total}",
+    "preparing_pages": "Preparing pages…",
+    "zoom_out": "Zoom out",
+    "zoom_in": "Zoom in",
+    "close": "Close",
+    "missing_file": "Guide file is missing.",
+    "loading_pdf": "Loading guide…",
+    "load_error": "Unable to load the guide."
   },
   "customer": {
     "background_alt": "background"
