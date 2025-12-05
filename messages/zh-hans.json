@@ -117,6 +117,18 @@
     "login_title": "内部后台登录",
     "hint_super_only": "仅管理员可进入此后台的上传功能。"
   },
+  "dashboard_home": {
+    "tab_upload": "上传",
+    "tab_preview": "预览文件",
+    "preview_title": "预览文件",
+    "preview_description": "按类别查看已存入 R2 的文件。",
+    "preview_category_label": "类别",
+    "preview_refresh": "刷新",
+    "preview_empty": "该类别暂无文件。",
+    "preview_error": "加载文件失败，请重试。",
+    "preview_loading": "正在加载文件...",
+    "preview_link_label": "打开文件"
+  },
   "dashboard_upload": {
     "title": "上传报告",
     "description": "选择分类并上传文件。对象键与 GET API 使用相同的 bucket/prefix。",

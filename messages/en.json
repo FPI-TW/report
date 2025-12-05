@@ -118,6 +118,18 @@
     "login_title": "Internal Dashboard Login",
     "hint_super_only": "Only Administrator can access Upload in this dashboard."
   },
+  "dashboard_home": {
+    "tab_upload": "Upload",
+    "tab_preview": "Preview files",
+    "preview_title": "Preview Files",
+    "preview_description": "Browse uploaded files stored in R2 by category.",
+    "preview_category_label": "Category",
+    "preview_refresh": "Refresh",
+    "preview_empty": "No files found for this category yet.",
+    "preview_error": "Could not load files. Please try again.",
+    "preview_loading": "Loading files...",
+    "preview_link_label": "Open file"
+  },
   "dashboard_upload": {
     "title": "Upload Reports",
     "description": "Choose a category and upload a file. Object key uses the same bucket/prefix as the GET APIs.",
