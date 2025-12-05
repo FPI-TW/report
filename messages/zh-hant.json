@@ -118,6 +118,25 @@
     "login_title": "內部後台登入",
     "hint_super_only": "僅管理者可進入此後台的上傳功能。"
   },
+  "dashboard_home": {
+    "tab_upload": "上傳",
+    "tab_preview": "預覽檔案",
+    "preview_title": "預覽檔案",
+    "preview_description": "依類別查看已存入 R2 的檔案。",
+    "preview_category_label": "類別",
+    "preview_refresh": "重新整理",
+    "preview_empty": "此類別尚無檔案。",
+    "preview_error": "載入檔案失敗，請再試一次。",
+    "preview_loading": "正在載入檔案...",
+    "preview_delete": "刪除檔案",
+    "preview_confirm_title": "確認刪除檔案？",
+    "preview_confirm_message": "此動作會從 R2 移除檔案且無法復原。",
+    "preview_confirm": "刪除",
+    "preview_deleting": "刪除中...",
+    "preview_cancel": "取消",
+    "preview_delete_success": "檔案已刪除。",
+    "preview_delete_error": "刪除失敗，請再試一次。"
+  },
   "dashboard_upload": {
     "title": "上傳報告",
     "description": "選擇分類並上傳檔案。物件鍵與 GET API 使用相同的 bucket/prefix。",

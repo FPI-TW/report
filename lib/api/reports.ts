@@ -60,3 +60,20 @@ export async function fetchReportUrl(
 
   return { response, data }
 }
+
+export type DeleteReportResponse =
+  | { ok: true; key: string }
+  | { error: string; message?: string }
+
+export async function deleteReport(
+  key: string
+): Promise<{ response: Response; data: DeleteReportResponse }> {
+  const response = await fetch("/api/reports/delete", {
+    method: "DELETE",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ key }),
+  })
+
+  const data = (await response.json().catch(() => ({}))) as DeleteReportResponse
+  return { response, data }
+}

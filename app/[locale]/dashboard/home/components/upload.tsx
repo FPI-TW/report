@@ -6,14 +6,10 @@ import { z } from "zod"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { UploadApi } from "@/lib/api"
+import { BRAND, REPORT_CATEGORIES, type ReportCategory } from "./constants"
 
 const schema = z.object({
-  category: z.enum([
-    "daily-report",
-    "weekly-report",
-    "research-report",
-    "ai-news",
-  ]),
+  category: z.enum(REPORT_CATEGORIES),
   file: z
     .instanceof(File)
     .refine(f => f && f.size > 0, "File is required")
@@ -22,14 +18,12 @@ const schema = z.object({
 })
 
 type FormValues = {
-  category: "daily-report" | "weekly-report" | "research-report" | "ai-news"
+  category: ReportCategory
   file: File | null
   filename?: string
 }
 
-const BRAND = "#ddae58" as const
-
-export default function UploadPage() {
+export default function UploadSection() {
   const t = useTranslations("dashboard_upload")
   const tDash = useTranslations("dashboard")
   const {
@@ -130,7 +124,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div>
+    <>
       <div className="relative mb-6 space-y-2">
         <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
           {t("title")}
@@ -267,6 +261,6 @@ export default function UploadPage() {
           </div>
         )}
       </form>
-    </div>
+    </>
   )
 }
