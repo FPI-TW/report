@@ -127,7 +127,7 @@
     "preview_refresh": "重新整理",
     "preview_empty": "此類別尚無檔案。",
     "preview_error": "載入檔案失敗，請再試一次。",
-    "preview_loading": "正在載入檔案...",
+    "preview_loading": "載入中...",
     "preview_delete": "刪除檔案",
     "preview_confirm_title": "確認刪除檔案？",
     "preview_confirm_message": "此動作會從 R2 移除檔案且無法復原。",

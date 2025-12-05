@@ -180,7 +180,7 @@ export default function PreviewSection({
           type="button"
           onClick={() => refetchPreview()}
           disabled={isPreviewFetching}
-          className="rounded border border-[#ddae58] px-3 py-1 text-sm font-medium text-[#ddae58] disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-w-20 rounded border border-[#ddae58] px-3 py-1 text-sm font-medium text-[#ddae58] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPreviewFetching
             ? tHome("preview_loading")

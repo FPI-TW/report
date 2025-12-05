@@ -127,7 +127,7 @@
     "preview_refresh": "Refresh",
     "preview_empty": "No files found for this category yet.",
     "preview_error": "Could not load files. Please try again.",
-    "preview_loading": "Loading files...",
+    "preview_loading": "Loading...",
     "preview_delete": "Delete file",
     "preview_confirm_title": "Delete file?",
     "preview_confirm_message": "This will remove the file from R2. This action cannot be undone.",
