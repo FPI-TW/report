@@ -4,14 +4,16 @@ import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
-import Tabs from "./components/tabs"
 import { queryReportByType, type ReportType } from "./lib/query-report-by-type"
-import WarningAlert from "./components/warningAlert"
 import { cn } from "@/lib/utils"
-import SettingsDialog from "./components/settings-dialog"
 import useDialog from "@/hooks/useDialog"
-import { Button } from "@/components/ui/button"
 import { updateParams } from "@/lib/updateParams"
+
+import Tabs from "./components/tabs"
+import SettingsDialog from "./components/settings-dialog"
+import WarningAlert from "./components/warningAlert"
+import { Button } from "@/components/ui/button"
+import { BookOpen } from "lucide-react"
 
 const PdfItem = dynamic(() => import("./components/pdf-item"), {
   ssr: false,
@@ -205,6 +207,7 @@ export default function DashboardPage() {
         className="fixed right-4 bottom-4 z-20 shadow-lg sm:right-6 sm:bottom-6"
         onClick={guideDialog.open}
       >
+        <BookOpen className="size-4" />
         {t("user_guide")}
       </Button>
     </div>
