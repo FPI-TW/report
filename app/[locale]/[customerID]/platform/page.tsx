@@ -16,6 +16,9 @@ import { updateParams } from "@/lib/updateParams"
 const PdfItem = dynamic(() => import("./components/pdf-item"), {
   ssr: false,
 })
+const GuideViewer = dynamic(() => import("./components/guide-viewer"), {
+  ssr: false,
+})
 
 type ApiReport = { key: string; date: string; url: string }
 type ApiGroup = { year: number; month: number; items: ApiReport[] }
@@ -39,6 +42,7 @@ export default function DashboardPage() {
   const [type, setType] = useState<ReportType>("daily-report")
   const t = useTranslations("dashboard")
   const settingsDialog = useDialog()
+  const guideDialog = useDialog()
   const isLongName = type === "research-report" || type === "ai-news"
   const titleKeyMap: Record<ReportType, string> = {
     "daily-report": "daily_title",
@@ -189,6 +193,20 @@ export default function DashboardPage() {
           </div>
         )}
       </footer>
+
+      <GuideViewer
+        isOpen={guideDialog.isOpen}
+        url="https://pub-16077c4d9e2e4f2dba973968f81b8b18.r2.dev/guide/user-guide.pdf"
+        title={t("user_guide_title")}
+        onClose={guideDialog.close}
+      />
+
+      <Button
+        className="fixed right-4 bottom-4 z-20 shadow-lg sm:right-6 sm:bottom-6"
+        onClick={guideDialog.open}
+      >
+        {t("user_guide")}
+      </Button>
     </div>
   )
 }

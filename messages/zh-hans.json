@@ -56,6 +56,8 @@
     "lang_en": "英语",
     "lang_zh_hant": "繁体中文",
     "lang_zh_hans": "简体中文",
+    "user_guide": "使用指南",
+    "user_guide_title": "平台使用指南",
     "logout": "登出",
     "logout_success": "已登出。",
     "logout_error": "无法登出，请稍后再试。",
@@ -90,6 +92,17 @@
     "context_title": "AI 工具",
     "ai_insights": "AI 洞察",
     "deep_query": "深度提问"
+  },
+  "guide_viewer": {
+    "title": "用户指南",
+    "page_counter": "第 {current} / {total} 页",
+    "preparing_pages": "正在准备页面…",
+    "zoom_out": "缩小",
+    "zoom_in": "放大",
+    "close": "关闭",
+    "missing_file": "找不到指南文件。",
+    "loading_pdf": "正在载入指南…",
+    "load_error": "无法载入指南。"
   },
   "customer": {
     "background_alt": "背景"
