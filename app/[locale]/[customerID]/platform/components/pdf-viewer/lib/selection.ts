@@ -20,6 +20,10 @@ type SpanSelection = {
   endOffset: number
 }
 
+type DocumentWithCaretPosition = Document & {
+  caretPositionFromPoint?: (x: number, y: number) => CaretPosition | null
+}
+
 export function beginPointerTracking(
   moveListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
   upListenerRef: React.RefObject<((event: PointerEvent) => void) | undefined>,
@@ -60,6 +64,20 @@ export function beginPointerTracking(
     dragStateRef.current = null
 
     if (dragState?.isActive && pageContentRef.current) {
+      const selection = window.getSelection()
+      selection?.removeAllRanges()
+
+      const didSelectWithCaret = selectTextBetweenPoints(
+        pageContentRef.current,
+        dragState.origin,
+        { x: event.clientX, y: event.clientY }
+      )
+      if (didSelectWithCaret) {
+        event.preventDefault()
+        setDragOverlay(null)
+        return
+      }
+
       const selectionRect = normalizeClientRect(dragState.origin, {
         x: event.clientX,
         y: event.clientY,
@@ -124,7 +142,8 @@ function selectOverlappingText(
   selectionRect: DragSelectionRect
 ) {
   const selection = window.getSelection()
-  selection?.removeAllRanges()
+  if (!selection) return
+  selection.removeAllRanges()
 
   const textLayer = container.querySelector<HTMLDivElement>(
     ".react-pdf__Page__textContent"
@@ -151,6 +170,64 @@ function selectOverlappingText(
   range.setStart(firstTextNode, first.startOffset)
   range.setEnd(lastTextNode, last.endOffset)
   selection.addRange(range)
+}
+
+function selectTextBetweenPoints(
+  container: HTMLDivElement,
+  startPoint: { x: number; y: number },
+  endPoint: { x: number; y: number }
+): boolean {
+  const selection = window.getSelection()
+  if (!selection) return false
+
+  const startRange = createCaretRangeFromPoint(startPoint)
+  const endRange = createCaretRangeFromPoint(endPoint)
+
+  if (!startRange || !endRange) return false
+  if (
+    !container.contains(startRange.startContainer) ||
+    !container.contains(endRange.startContainer)
+  ) {
+    return false
+  }
+
+  const normalizedRange = document.createRange()
+  const isStartBeforeEnd =
+    startRange.compareBoundaryPoints(Range.START_TO_START, endRange) <= 0
+
+  const anchor = isStartBeforeEnd ? startRange : endRange
+  const focus = isStartBeforeEnd ? endRange : startRange
+
+  normalizedRange.setStart(anchor.startContainer, anchor.startOffset)
+  normalizedRange.setEnd(focus.startContainer, focus.startOffset)
+
+  selection.addRange(normalizedRange)
+  return true
+}
+
+function createCaretRangeFromPoint(point: { x: number; y: number }) {
+  const doc = document as DocumentWithCaretPosition
+
+  if (doc.caretPositionFromPoint) {
+    const position = doc.caretPositionFromPoint(point.x, point.y)
+    if (position) {
+      const range = document.createRange()
+      range.setStart(position.offsetNode, position.offset)
+      range.collapse(true)
+      return range
+    }
+  }
+
+  if (document.caretRangeFromPoint) {
+    const range = document.caretRangeFromPoint(point.x, point.y)
+    if (range) {
+      const collapsed = range.cloneRange()
+      collapsed.collapse(true)
+      return collapsed
+    }
+  }
+
+  return null
 }
 
 function calculateSpanSelection(
