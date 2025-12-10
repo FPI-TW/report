@@ -4,16 +4,11 @@ import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
 import { useEffect, useRef, useState } from "react"
-import { Document, Page, pdfjs } from "react-pdf"
+import { Document, Page } from "react-pdf"
 import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import useZoom from "../pdf-viewer/hooks/useZoom"
-
-if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.93/pdf.worker.min.mjs"
-}
 
 type Props = {
   isOpen: boolean

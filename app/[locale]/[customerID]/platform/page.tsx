@@ -14,6 +14,7 @@ import SettingsDialog from "./components/settings-dialog"
 import WarningAlert from "./components/warningAlert"
 import { Button } from "@/components/ui/button"
 import { BookOpen } from "lucide-react"
+import { ensurePdfWorker } from "./lib/pdf-worker"
 
 const PdfItem = dynamic(() => import("./components/pdf-item"), {
   ssr: false,
@@ -38,6 +39,8 @@ const months = 3 as const
 function monthLabel(m: number) {
   return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
 }
+
+ensurePdfWorker()
 
 export default function DashboardPage() {
   const [page, setPage] = useState(1)

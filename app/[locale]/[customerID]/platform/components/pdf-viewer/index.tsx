@@ -5,7 +5,7 @@ import "react-pdf/dist/Page/TextLayer.css"
 
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
-import { Document, Page, pdfjs } from "react-pdf"
+import { Document, Page } from "react-pdf"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useTranslations } from "next-intl"
@@ -27,11 +27,6 @@ import {
   detachPointerListeners,
   type OverlayRect,
 } from "./lib/selection"
-
-if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.93/pdf.worker.min.mjs"
-}
 
 type Props = {
   url: string
