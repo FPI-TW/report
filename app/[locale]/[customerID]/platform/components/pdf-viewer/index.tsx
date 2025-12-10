@@ -22,11 +22,6 @@ import type { ReportType } from "../../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
 import useZoom from "./hooks/useZoom"
-import {
-  beginPointerTracking,
-  detachPointerListeners,
-  type OverlayRect,
-} from "./lib/selection"
 
 type Props = {
   url: string
@@ -245,7 +240,7 @@ export default function PdfViewer({
                   <div className="flex w-full flex-col items-center gap-6">
                     {numPages &&
                       Array.from({ length: numPages }, (_, index) => (
-                        <SelectablePdfPage
+                        <PdfPage
                           key={`page-${index + 1}`}
                           pageNumber={index + 1}
                           height={pageHeight}
@@ -277,7 +272,7 @@ export default function PdfViewer({
   )
 }
 
-function SelectablePdfPage({
+function PdfPage({
   pageNumber,
   height,
   registerPageRef,
@@ -286,88 +281,22 @@ function SelectablePdfPage({
   height: number
   registerPageRef?: (node: HTMLDivElement | null) => void
 }) {
-  const [dragOverlay, setDragOverlay] = useState<OverlayRect | null>(null)
-  const pageContainerRef = useRef<HTMLDivElement | null>(null)
-  const pageContentRef = useRef<HTMLDivElement | null>(null)
-  const dragStateRef = useRef<{
-    origin: { x: number; y: number }
-    containerRect: DOMRect
-    isActive: boolean
-  } | null>(null)
-  const moveListenerRef = useRef<((event: PointerEvent) => void) | undefined>(
-    undefined
-  )
-  const upListenerRef = useRef<((event: PointerEvent) => void) | undefined>(
-    undefined
-  )
-
-  useEffect(() => {
-    return () => detachPointerListeners(moveListenerRef, upListenerRef)
-  }, [])
-
-  const handlePointerDown = (
-    event: React.PointerEvent<HTMLDivElement>
-  ): void => {
-    if (event.button !== 0) {
-      return
-    }
-
-    const targetElement = event.target as HTMLElement | null
-    if (targetElement?.closest("a")) {
-      return
-    }
-    if (!pageContentRef.current) return
-    event.preventDefault()
-    window.getSelection()?.removeAllRanges()
-    const containerRect = pageContentRef.current.getBoundingClientRect()
-    dragStateRef.current = {
-      origin: { x: event.clientX, y: event.clientY },
-      containerRect,
-      isActive: false,
-    }
-    beginPointerTracking(
-      moveListenerRef,
-      upListenerRef,
-      dragStateRef,
-      pageContentRef,
-      setDragOverlay
-    )
-  }
-
   return (
     <div
       ref={node => {
-        pageContainerRef.current = node
         registerPageRef?.(node)
       }}
       data-page-number={pageNumber}
       className="flex w-full justify-center"
       style={{ minHeight: height }}
     >
-      <div
-        ref={pageContentRef}
-        className="relative inline-block"
-        onPointerDownCapture={handlePointerDown}
-      >
+      <div className="relative inline-block">
         <Page
           pageNumber={pageNumber}
           height={height}
           renderTextLayer
           renderAnnotationLayer
         />
-        <div className="pointer-events-none absolute inset-0 cursor-crosshair">
-          {dragOverlay ? (
-            <div
-              className="border-primary/70 bg-primary/10 pointer-events-none absolute rounded border"
-              style={{
-                left: dragOverlay.left,
-                top: dragOverlay.top,
-                width: dragOverlay.width,
-                height: dragOverlay.height,
-              }}
-            />
-          ) : null}
-        </div>
       </div>
     </div>
   )
