@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { queryReportByType, type ReportType } from "./lib/query-report-by-type"
 import { cn } from "@/lib/utils"
@@ -43,8 +44,12 @@ function monthLabel(m: number) {
 ensurePdfWorker()
 
 export default function DashboardPage() {
+  const search = useSearchParams()
+  const defaultReportType =
+    (search.get("reportType") as ReportType | null) || "daily-report"
+
   const [page, setPage] = useState(1)
-  const [type, setType] = useState<ReportType>("daily-report")
+  const [type, setType] = useState<ReportType>(defaultReportType)
   const t = useTranslations("dashboard")
   const settingsDialog = useDialog()
   const guideDialog = useDialog()
