@@ -14,7 +14,7 @@ import Tabs from "./components/tabs"
 import SettingsDialog from "./components/settings-dialog"
 import WarningAlert from "./components/warningAlert"
 import { Button } from "@/components/ui/button"
-import { BookOpen } from "lucide-react"
+import { BookOpen, Megaphone } from "lucide-react"
 import { ensurePdfWorker } from "./lib/pdf-worker"
 
 const PdfItem = dynamic(() => import("./components/pdf-item"), {
@@ -36,6 +36,7 @@ type ApiResponse = {
 
 const BRAND = "#ddae58" as const
 const months = 3 as const
+const announcement = process.env.NEXT_PUBLIC_ANNOUNCEMENT
 
 function monthLabel(m: number) {
   return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
@@ -131,6 +132,26 @@ export default function DashboardPage() {
             style={{ borderBottom: `2px solid ${BRAND}` }}
           />
         </div>
+
+        {announcement && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="relative mb-8 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm"
+          >
+            <div className="flex items-start gap-3">
+              <Megaphone className="mt-0.5 size-4" aria-hidden />
+              <div className="w-full space-y-1">
+                <p className="text-sm font-semibold">
+                  {t("announcement_label")}
+                </p>
+                <p className="text-sm leading-6 whitespace-pre-line">
+                  {t("announcement_message")}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="relative space-y-16">
           {isLoading && <p className="text-sm text-gray-700">{t("loading")}</p>}
