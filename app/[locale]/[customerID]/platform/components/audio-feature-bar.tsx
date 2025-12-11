@@ -149,10 +149,10 @@ export default function AudioFeatureBar({
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              className="bg-background/95 absolute top-[calc(100%+12px)] left-0 w-[min(90vw,26rem)] rounded-xl border shadow-2xl backdrop-blur"
-              initial={{ opacity: 0, y: -6 }}
+              className="bg-background/95 absolute right-0 bottom-[calc(100%+12px)] w-[min(90vw,26rem)] rounded-xl border shadow-2xl backdrop-blur"
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
+              exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.15 }}
             >
               <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
