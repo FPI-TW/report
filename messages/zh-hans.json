@@ -53,6 +53,8 @@
     "settings": "设置",
     "settings_title": "偏好设置",
     "language_label": "语言",
+    "announcement_label": "系统公告｜晨报与 AI 重讯发布时间调整",
+    "announcement_message": "因公司举办 2026 年度战略会议暨团队建设活动，每日晨报与 AI 重讯服务将于 12 月 15 日至 12 月 19 日暂停更新，并将自 12 月 22 日起恢复正常发布，持续为您提供每日市场摘要、关键指标追踪与AI深度分析。\n\n感谢您的理解与支持，廷丰将持续以更完善的AI研究内容协助您掌握市场动能。",
     "lang_en": "英语",
     "lang_zh_hant": "繁体中文",
     "lang_zh_hans": "简体中文",
