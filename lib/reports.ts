@@ -19,19 +19,17 @@ function toYearMonth(dateStr: string) {
 }
 
 function prefixForKind(kind: ReportKind): string | undefined {
-  // Use folder prefixes for category-based reports
-  if (kind === "daily-report") return "daily-report/"
   // New categories are expected to live under folder-like prefixes in object keys
   // e.g. "ai-news/2024-11-01-something.pdf". Using folder prefixes improves list performance.
   switch (kind) {
     case "ai-news":
-      return "ai-news/"
+      return "ai-news/pdf/"
     case "weekly-report":
-      return "weekly-report/"
+      return "weekly-report/pdf/"
     case "research-report":
-      return "research-report/"
+      return "research-report/pdf/"
     default:
-      return undefined
+      return "daily-report/pdf/"
   }
 }
 
