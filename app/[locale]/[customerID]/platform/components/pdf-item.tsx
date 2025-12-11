@@ -21,6 +21,7 @@ type Props = {
 export default function PdfItem({ item, name, reportType }: Props) {
   const t = useTranslations("dashboard")
   const displayName = name ? name.replace(/\.pdf$/i, "") : item.date
+  const fileName = decodeURIComponent(item.key.split("/").pop() || item.key)
   const pdfModal = useDialog()
   const [viewerUrl, setViewerUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -83,6 +84,7 @@ export default function PdfItem({ item, name, reportType }: Props) {
                     errorLabel={t("error")}
                     reportType={reportType}
                     reportDate={item.date}
+                    fileName={fileName}
                     onClose={pdfModal.close}
                   />
                 ) : (

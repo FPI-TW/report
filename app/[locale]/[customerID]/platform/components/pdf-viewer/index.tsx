@@ -17,6 +17,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+import AudioFeatureBar from "../audio-feature-bar"
 import Chat from "../chat"
 import type { ReportType } from "../../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
@@ -29,6 +30,7 @@ type Props = {
   errorLabel: string
   reportType: ReportType
   reportDate: string
+  fileName?: string | undefined
   onClose: () => void
 }
 
@@ -38,6 +40,7 @@ export default function PdfViewer({
   errorLabel,
   reportType,
   reportDate,
+  fileName,
   onClose,
 }: Props) {
   const t = useTranslations("pdf_viewer")
@@ -167,6 +170,11 @@ export default function PdfViewer({
           reportType={reportType}
           reportDate={reportDate}
           pdfText={pdfText}
+        />
+        <AudioFeatureBar
+          reportType={reportType}
+          reportDate={reportDate}
+          fileName={fileName}
         />
 
         {/* Main Content */}

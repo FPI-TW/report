@@ -85,6 +85,20 @@
     "send": "送出",
     "reference": "參考："
   },
+  "audio_bar": {
+    "open_audio_dashboard": "開啟音訊控制台",
+    "close_audio_dashboard": "關閉音訊控制台",
+    "feature_bar_title": "音訊面板",
+    "feature_bar_subtitle": "閱讀時同步收聽摘要，可拖曳到任意位置。",
+    "drag_hint": "拖曳以移動",
+    "loading_audio": "正在取得音訊連結…",
+    "audio_unavailable": "這份報告目前沒有音訊。",
+    "unsupported_type": "目前僅提供每日晨報的音訊。",
+    "missing_filename": "找不到這份報告對應的音訊檔名。",
+    "retry": "重試",
+    "audio_ready": "可播放",
+    "audio_not_supported": "您的瀏覽器不支援音訊播放器。"
+  },
   "pdf_viewer": {
     "select_text": "請先反白報告中的文字。",
     "download": "下載",
