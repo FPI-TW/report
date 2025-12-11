@@ -87,15 +87,13 @@ export function buildAudioObjectKey(
   type: string,
   fileName: string
 ): string | null {
-  const targetType = type === "dialy-report" ? "dialy-report" : type
-  if (targetType !== "daily-report" && targetType !== "dialy-report")
-    return null
+  if (!type || !fileName) return null // Invalid type
 
   const sanitized = sanitizeFileName(fileName)
   if (!sanitized) return null
 
   // Audio files are stored under the dialy/report/audio prefix in R2.
-  return `dialy/report/audio/${sanitized}.mp3`
+  return `${type}/audio/${sanitized}.mp3`
 }
 
 export function isAllowedAudioKey(key: string): boolean {

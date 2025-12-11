@@ -31,7 +31,6 @@ export default function AudioFeatureBar({
   const hasDraggedRef = useRef(false)
 
   const derivedFileName = useMemo(() => {
-    console.log("fileName", fileName)
     const fromProp = fileName?.split("/").pop()
     if (fromProp && fromProp.trim()) {
       return fromProp.replace(/\.[^.]+$/i, "").trim()
@@ -61,7 +60,7 @@ export default function AudioFeatureBar({
       setAudioUrl(null)
 
       const { response, data } = await AudioApi.fetchAudioUrl(
-        reportType,
+        reportType === "daily-report" ? "dialy-report" : reportType,
         derivedFileName
       )
 
@@ -89,19 +88,19 @@ export default function AudioFeatureBar({
   }, [derivedFileName, isOpen, reportType, status, t])
 
   return (
-    <>
-      <motion.div
-        className="fixed bottom-24 left-4 z-40 sm:right-6 sm:left-auto"
-        drag
-        dragControls={dragControls}
-        dragListener={false}
-        dragConstraints={dragConstraints}
-        dragElastic={0}
-        dragMomentum={false}
-        onDrag={() => {
-          hasDraggedRef.current = true
-        }}
-      >
+    <motion.div
+      className="fixed bottom-24 left-4 z-40 sm:right-6 sm:left-auto"
+      drag
+      dragControls={dragControls}
+      dragListener={false}
+      dragConstraints={dragConstraints}
+      dragElastic={0}
+      dragMomentum={false}
+      onDrag={() => {
+        hasDraggedRef.current = true
+      }}
+    >
+      <div className="relative flex flex-col items-start gap-2">
         <button
           type="button"
           className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-r from-orange-500 via-amber-500 to-yellow-400 shadow-md transition hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:h-12 sm:w-12"
@@ -146,103 +145,103 @@ export default function AudioFeatureBar({
             />
           </svg>
         </button>
-      </motion.div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className="bg-background/95 fixed bottom-20 left-4 z-40 w-[min(90vw,26rem)] rounded-xl border shadow-2xl backdrop-blur sm:right-6 sm:left-auto"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.18 }}
-          >
-            <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-              <div className="flex flex-col gap-0.5">
-                <p className="text-xs font-semibold tracking-[0.18em] text-orange-600 uppercase">
-                  {t("feature_bar_title")}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {t("feature_bar_subtitle")}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground rounded p-1 text-xs"
-                onClick={() => setIsOpen(false)}
-                aria-label={t("close_audio_dashboard")}
-              >
-                ✕
-              </button>
-            </header>
-
-            <div className="space-y-3 px-4 py-4">
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-full bg-orange-100 px-2 py-1 font-semibold text-orange-700">
-                  {tDashboard(reportType)}
-                </span>
-                <span className="text-muted-foreground">{reportDate}</span>
-                <span className="text-muted-foreground">
-                  · {t("drag_hint")}
-                </span>
-              </div>
-
-              <div className="bg-muted/40 rounded-lg border px-3 py-3">
-                {status === "loading" && (
-                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                    <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500" />
-                    <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500 delay-100" />
-                    <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500 delay-200" />
-                    <span>{t("loading_audio")}</span>
-                  </div>
-                )}
-
-                {status === "unsupported" && (
-                  <p className="text-muted-foreground text-sm">
-                    {t("unsupported_type")}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              className="bg-background/95 absolute top-[calc(100%+12px)] left-0 w-[min(90vw,26rem)] rounded-xl border shadow-2xl backdrop-blur"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+            >
+              <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-xs font-semibold tracking-[0.18em] text-orange-600 uppercase">
+                    {t("feature_bar_title")}
                   </p>
-                )}
+                  <p className="text-muted-foreground text-sm">
+                    {t("feature_bar_subtitle")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground rounded p-1 text-xs"
+                  onClick={() => setIsOpen(false)}
+                  aria-label={t("close_audio_dashboard")}
+                >
+                  ✕
+                </button>
+              </header>
 
-                {status === "error" && (
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-destructive text-sm">
-                      {errorMessage}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                      onClick={() => setStatus("idle")}
-                    >
-                      {t("retry")}
-                    </Button>
-                  </div>
-                )}
+              <div className="space-y-3 px-4 py-4">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="rounded-full bg-orange-100 px-2 py-1 font-semibold text-orange-700">
+                    {tDashboard(reportType)}
+                  </span>
+                  <span className="text-muted-foreground">{reportDate}</span>
+                  <span className="text-muted-foreground">
+                    · {t("drag_hint")}
+                  </span>
+                </div>
 
-                {status === "ready" && audioUrl && (
-                  <div className="space-y-2">
-                    <div className="text-muted-foreground flex items-center justify-between text-xs">
-                      <span>{derivedFileName}</span>
-                      <span className="font-semibold text-orange-600">
-                        {t("audio_ready")}
-                      </span>
+                <div className="bg-muted/40 rounded-lg border px-3 py-3">
+                  {status === "loading" && (
+                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500" />
+                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500 delay-100" />
+                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500 delay-200" />
+                      <span>{t("loading_audio")}</span>
                     </div>
-                    <audio
-                      className="w-full"
-                      controls
-                      preload="none"
-                      src={audioUrl}
-                    >
-                      {t("audio_not_supported")}
-                    </audio>
-                  </div>
-                )}
+                  )}
+
+                  {status === "unsupported" && (
+                    <p className="text-muted-foreground text-sm">
+                      {t("unsupported_type")}
+                    </p>
+                  )}
+
+                  {status === "error" && (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-destructive text-sm">
+                        {errorMessage}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-xs"
+                        onClick={() => setStatus("idle")}
+                      >
+                        {t("retry")}
+                      </Button>
+                    </div>
+                  )}
+
+                  {status === "ready" && audioUrl && (
+                    <div className="space-y-2">
+                      <div className="text-muted-foreground flex items-center justify-between text-xs">
+                        <span>{derivedFileName}</span>
+                        <span className="font-semibold text-orange-600">
+                          {t("audio_ready")}
+                        </span>
+                      </div>
+                      <audio
+                        className="w-full"
+                        controls
+                        preload="none"
+                        src={audioUrl}
+                      >
+                        {t("audio_not_supported")}
+                      </audio>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   )
 }
 
