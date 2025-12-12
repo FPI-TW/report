@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { COOKIE_NAME, verifyJwt } from "@/lib/session"
-import { GetObjectCommand } from "@aws-sdk/client-s3"
+import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import {
   buildAudioObjectKey,
@@ -37,6 +37,37 @@ export async function GET(req: NextRequest) {
   try {
     const { bucket } = getR2Config()
     const client = makeR2Client()
+
+    // Ensure the object exists before signing
+    try {
+      await client.send(
+        new HeadObjectCommand({
+          Bucket: bucket,
+          Key: resolvedKey,
+        })
+      )
+    } catch (err) {
+      const statusCode =
+        (err as { $metadata?: { httpStatusCode?: number } })?.$metadata
+          ?.httpStatusCode ?? 500
+      if (statusCode === 404) {
+        return new Response(
+          JSON.stringify({ error: "not_found", message: "Audio not found" }),
+          {
+            status: 404,
+            headers: { "content-type": "application/json" },
+          }
+        )
+      }
+      return new Response(
+        JSON.stringify({
+          error: "head_failed",
+          message: err instanceof Error ? err.message : "Unknown error",
+        }),
+        { status: 500, headers: { "content-type": "application/json" } }
+      )
+    }
+
     const cmd = new GetObjectCommand({
       Bucket: bucket,
       Key: resolvedKey,
