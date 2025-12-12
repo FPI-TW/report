@@ -10,6 +10,8 @@ export type ReportKind =
   | "weekly-report"
   | "research-report"
 
+export type ReportFileType = "pdf" | "audio"
+
 export type ReportItem = { key: string; date: string; url: string }
 export type ReportGroup = { year: number; month: number; items: ReportItem[] }
 
@@ -18,19 +20,8 @@ function toYearMonth(dateStr: string) {
   return { year: d.getFullYear(), month: d.getMonth() + 1 }
 }
 
-function prefixForKind(kind: ReportKind): string | undefined {
-  // New categories are expected to live under folder-like prefixes in object keys
-  // e.g. "ai-news/2024-11-01-something.pdf". Using folder prefixes improves list performance.
-  switch (kind) {
-    case "ai-news":
-      return "ai-news/pdf/"
-    case "weekly-report":
-      return "weekly-report/pdf/"
-    case "research-report":
-      return "research-report/pdf/"
-    default:
-      return "daily-report/pdf/"
-  }
+function prefixForKind(kind: ReportKind, fileType: ReportFileType): string {
+  return `${kind}/${fileType}/`
 }
 
 function fallbackKeyToReport(key: string, baseUrl: string): ReportItem | null {
@@ -56,7 +47,8 @@ function keyToReportByKind(
 export async function listReportGroupsByKind(
   kind: ReportKind,
   page: number,
-  monthsPerPage: number
+  monthsPerPage: number,
+  fileType: ReportFileType = "pdf"
 ): Promise<{
   page: number
   months: number
@@ -67,7 +59,7 @@ export async function listReportGroupsByKind(
 }> {
   const client = makeR2Client()
   const { bucket, baseUrl } = getR2Config()
-  const prefix = prefixForKind(kind)
+  const prefix = prefixForKind(kind, fileType)
 
   const items: ReportItem[] = []
   let continuation: string | undefined

@@ -15,12 +15,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const page = Math.max(1, Number(searchParams.get("page") || 1))
   const monthsPerPage = Math.max(1, Number(searchParams.get("months") || 6))
+  const fileType = searchParams.get("fileType")
 
   try {
     const data = await listReportGroupsByKind(
       "research-report",
       page,
-      monthsPerPage
+      monthsPerPage,
+      fileType === "audio" ? "audio" : "pdf"
     )
     return new Response(JSON.stringify(data), {
       status: 200,
