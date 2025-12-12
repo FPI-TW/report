@@ -92,7 +92,6 @@ export function buildAudioObjectKey(
   const sanitized = sanitizeFileName(fileName)
   if (!sanitized) return null
 
-  // Audio files are stored under the dialy/report/audio prefix in R2.
   return `${type}/audio/${sanitized}.mp3`
 }
 

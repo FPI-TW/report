@@ -4,33 +4,26 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useDragControls } from "motion/react"
 import { useTranslations } from "next-intl"
 import type { ReportType } from "../lib/query-report-by-type"
-import { AudioApi } from "@/lib/api"
-import { Button } from "@/components/ui/button"
-
-type AudioStatus = "idle" | "loading" | "ready" | "error" | "unsupported"
 
 type Props = {
   reportType: ReportType
   reportDate: string
   fileName?: string | undefined
+  audioUrl: string | null
 }
 
 export default function AudioFeatureBar({
   reportType,
   reportDate,
   fileName,
+  audioUrl,
 }: Props) {
   const t = useTranslations("audio_bar")
   const tDashboard = useTranslations("dashboard")
   const [isOpen, setIsOpen] = useState(false)
-  const [status, setStatus] = useState<AudioStatus>("idle")
-  const [audioUrl, setAudioUrl] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const dragControls = useDragControls()
   const dragConstraints = useAudioDragConstraints()
   const hasDraggedRef = useRef(false)
-  const audioType = reportType
-
   const derivedFileName = useMemo(() => {
     const fromProp = fileName?.split("/").pop()
     if (fromProp && fromProp.trim()) {
@@ -44,54 +37,9 @@ export default function AudioFeatureBar({
     return null
   }, [fileName, reportDate])
 
-  const audioKey = useMemo(() => {
-    if (!derivedFileName) return null
-    const safeName = derivedFileName.replace(/[\\/]/g, "-")
-    return `${audioType}/audio/${safeName}.mp3`
-  }, [audioType, derivedFileName])
-
-  useEffect(() => {
-    if (!isOpen || status !== "idle") return
-
-    if (!audioKey) {
-      setStatus("error")
-      setErrorMessage(t("missing_filename"))
-      return
-    }
-
-    let cancelled = false
-
-    const fetchAudio = async () => {
-      setStatus("loading")
-      setErrorMessage(null)
-      setAudioUrl(null)
-
-      const { response, data } = await AudioApi.fetchAudioUrl(audioKey)
-
-      console.log(response, data, cancelled)
-      console.log("url" in data)
-
-      if (response.ok && "url" in data) {
-        setAudioUrl(data.url)
-        setStatus("ready")
-        console.log("end")
-        return
-      }
-
-      setStatus("error")
-      setErrorMessage(
-        "message" in data && data.message
-          ? data.message
-          : t("audio_unavailable")
-      )
-    }
-
-    void fetchAudio()
-
-    return () => {
-      cancelled = true
-    }
-  }, [audioKey, isOpen, status, t])
+  if (!audioUrl) {
+    return null
+  }
 
   return (
     <motion.div
@@ -122,14 +70,6 @@ export default function AudioFeatureBar({
             }
             setIsOpen(open => {
               const next = !open
-              if (
-                next &&
-                status !== "loading" &&
-                status !== "ready" &&
-                status !== "idle"
-              ) {
-                setStatus("idle")
-              }
               return next
             })
           }}
@@ -189,38 +129,7 @@ export default function AudioFeatureBar({
                 </div>
 
                 <div className="bg-muted/40 rounded-lg border px-3 py-3">
-                  {status === "loading" && (
-                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500" />
-                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500 delay-100" />
-                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-orange-500 delay-200" />
-                      <span>{t("loading_audio")}</span>
-                    </div>
-                  )}
-
-                  {status === "unsupported" && (
-                    <p className="text-muted-foreground text-sm">
-                      {t("unsupported_type")}
-                    </p>
-                  )}
-
-                  {status === "error" && (
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-destructive text-sm">
-                        {errorMessage}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-3 text-xs"
-                        onClick={() => setStatus("idle")}
-                      >
-                        {t("retry")}
-                      </Button>
-                    </div>
-                  )}
-
-                  {status === "ready" && audioUrl && (
+                  {audioUrl && (
                     <div className="space-y-2">
                       <div className="text-muted-foreground flex items-center justify-between text-xs">
                         <span>{derivedFileName}</span>
