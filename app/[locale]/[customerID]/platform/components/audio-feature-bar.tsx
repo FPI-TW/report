@@ -29,6 +29,7 @@ export default function AudioFeatureBar({
   const dragControls = useDragControls()
   const dragConstraints = useAudioDragConstraints()
   const hasDraggedRef = useRef(false)
+  const audioType = reportType
 
   const derivedFileName = useMemo(() => {
     const fromProp = fileName?.split("/").pop()
@@ -43,10 +44,16 @@ export default function AudioFeatureBar({
     return null
   }, [fileName, reportDate])
 
+  const audioKey = useMemo(() => {
+    if (!derivedFileName) return null
+    const safeName = derivedFileName.replace(/[\\/]/g, "-")
+    return `${audioType}/audio/${safeName}.mp3`
+  }, [audioType, derivedFileName])
+
   useEffect(() => {
     if (!isOpen || status !== "idle") return
 
-    if (!derivedFileName) {
+    if (!audioKey) {
       setStatus("error")
       setErrorMessage(t("missing_filename"))
       return
@@ -59,16 +66,15 @@ export default function AudioFeatureBar({
       setErrorMessage(null)
       setAudioUrl(null)
 
-      const { response, data } = await AudioApi.fetchAudioUrl(
-        reportType === "daily-report" ? "dialy-report" : reportType,
-        derivedFileName
-      )
+      const { response, data } = await AudioApi.fetchAudioUrl(audioKey)
 
-      if (cancelled) return
+      console.log(response, data, cancelled)
+      console.log("url" in data)
 
       if (response.ok && "url" in data) {
         setAudioUrl(data.url)
         setStatus("ready")
+        console.log("end")
         return
       }
 
@@ -85,7 +91,7 @@ export default function AudioFeatureBar({
     return () => {
       cancelled = true
     }
-  }, [derivedFileName, isOpen, reportType, status, t])
+  }, [audioKey, isOpen, status, t])
 
   return (
     <motion.div
@@ -180,9 +186,6 @@ export default function AudioFeatureBar({
                     {tDashboard(reportType)}
                   </span>
                   <span className="text-muted-foreground">{reportDate}</span>
-                  <span className="text-muted-foreground">
-                    · {t("drag_hint")}
-                  </span>
                 </div>
 
                 <div className="bg-muted/40 rounded-lg border px-3 py-3">
@@ -227,9 +230,10 @@ export default function AudioFeatureBar({
                       </div>
                       <audio
                         className="w-full"
-                        controls
                         preload="none"
                         src={audioUrl}
+                        controls
+                        controlsList="nodownload"
                       >
                         {t("audio_not_supported")}
                       </audio>

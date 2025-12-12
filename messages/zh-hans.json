@@ -90,7 +90,6 @@
     "close_audio_dashboard": "关闭音频控制台",
     "feature_bar_title": "音频面板",
     "feature_bar_subtitle": "阅读时同步收听摘要，可拖动到任意位置。",
-    "drag_hint": "拖动移动",
     "loading_audio": "正在获取音频链接…",
     "audio_unavailable": "这份报告目前没有音频。",
     "unsupported_type": "目前仅提供每日晨报的音频。",

@@ -1,21 +1,14 @@
-import type { ReportType } from "@/app/[locale]/[customerID]/platform/lib/query-report-by-type"
-
 export type AudioUrlSuccessResponse = { url: string }
 export type AudioUrlErrorResponse = { error: string; message?: string }
 export type AudioUrlResponse = AudioUrlSuccessResponse | AudioUrlErrorResponse
 
 export async function fetchAudioUrl(
-  type: ReportType | "dialy-report",
-  fileName: string
+  key: string
 ): Promise<{ response: Response; data: AudioUrlResponse }> {
-  const searchParams = new URLSearchParams({
-    type,
-    filename: fileName,
-  })
-
-  const response = await fetch(`/api/audio/url?${searchParams.toString()}`, {
-    cache: "no-store",
-  })
+  const response = await fetch(
+    `/api/audio/url?key=${encodeURIComponent(key)}`,
+    { cache: "no-store" }
+  )
 
   let data: AudioUrlResponse
   try {

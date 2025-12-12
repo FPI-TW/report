@@ -20,11 +20,14 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url)
+  const keyParam = searchParams.get("key") || ""
   const type = searchParams.get("type") || ""
   const fileName = searchParams.get("filename") || ""
 
-  const key = buildAudioObjectKey(type, fileName)
-  if (!key || !isAllowedAudioKey(key)) {
+  const resolvedKey =
+    keyParam || buildAudioObjectKey(type || "dialy-report", fileName)
+
+  if (!resolvedKey || !isAllowedAudioKey(resolvedKey)) {
     return new Response(JSON.stringify({ error: "invalid_key" }), {
       status: 400,
       headers: { "content-type": "application/json" },
@@ -36,8 +39,9 @@ export async function GET(req: NextRequest) {
     const client = makeR2Client()
     const cmd = new GetObjectCommand({
       Bucket: bucket,
-      Key: key,
+      Key: resolvedKey,
       ResponseContentDisposition: "inline",
+      ResponseContentType: "audio/mpeg",
     })
     const url = await getSignedUrl(client, cmd, { expiresIn: 300 })
 

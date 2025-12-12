@@ -91,7 +91,6 @@
     "close_audio_dashboard": "Close audio dashboard",
     "feature_bar_title": "Audio dashboard",
     "feature_bar_subtitle": "Listen to narrated summaries while you read.",
-    "drag_hint": "Drag to pin this bar anywhere",
     "loading_audio": "Fetching audio stream…",
     "audio_unavailable": "Audio is not available for this report yet.",
     "unsupported_type": "Audio is only available for Daily Reports right now.",
