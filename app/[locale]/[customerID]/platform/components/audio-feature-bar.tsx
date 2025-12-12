@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useDragControls } from "motion/react"
 import { useTranslations } from "next-intl"
 import type { ReportType } from "../lib/query-report-by-type"
+import { Headphones } from "lucide-react"
 
 type Props = {
   reportType: ReportType
@@ -43,7 +44,7 @@ export default function AudioFeatureBar({
 
   return (
     <motion.div
-      className="fixed bottom-24 left-4 z-40 sm:right-6 sm:left-auto"
+      className="fixed right-4 bottom-20 z-40 sm:right-12 sm:bottom-24 sm:left-auto"
       drag
       dragControls={dragControls}
       dragListener={false}
@@ -57,7 +58,7 @@ export default function AudioFeatureBar({
       <div className="relative flex flex-col items-start gap-2">
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-r from-orange-500 via-amber-500 to-yellow-400 shadow-md transition hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:h-12 sm:w-12"
+          className="flex size-11 items-center justify-center rounded-full bg-linear-to-r from-orange-500 via-amber-500 to-yellow-400 shadow-md transition hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 sm:size-12"
           onPointerDown={event => {
             event.preventDefault()
             dragControls.start(event)
@@ -75,21 +76,7 @@ export default function AudioFeatureBar({
           }}
         >
           <span className="sr-only">{t("open_audio_dashboard")}</span>
-          <svg
-            className="h-5 w-5 text-white sm:h-6 sm:w-6"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              d="M4 15.5c0-1.4.9-2.6 2.3-3l5.4-1.6V7.1c0-.8.6-1.6 1.5-1.8l2.6-.7c.8-.2 1.7.3 1.9 1.1l1.9 6.9c.2.8-.3 1.7-1.1 1.9l-2.6.7c-.9.2-1.8-.2-2.1-1l-.9-2.1-4.5 1.3V18c0 .5-.4 1-1 1H5c-.6 0-1-.4-1-1v-2.5Z"
-              fill="currentColor"
-            />
-            <path
-              d="M10.5 17a2.5 2.5 0 1 1-5 0c0-1.4 1.1-2.5 2.5-2.5S10.5 15.6 10.5 17Z"
-              fill="currentColor"
-              opacity="0.6"
-            />
-          </svg>
+          <Headphones className="size-6 sm:size-6" color="#ffffff" />
         </button>
 
         <AnimatePresence>
