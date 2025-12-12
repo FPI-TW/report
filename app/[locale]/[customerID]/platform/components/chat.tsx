@@ -35,7 +35,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
 
   return (
     <motion.div
-      className="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6"
+      className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6"
       drag
       dragControls={dragControls}
       dragListener={false}
@@ -60,7 +60,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
 
         <button
           type="button"
-          className="bg-background hover:bg-muted flex h-11 w-11 cursor-move items-center justify-center rounded-full border shadow-lg sm:h-12 sm:w-12"
+          className="bg-background hover:bg-muted flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border shadow-lg sm:h-12 sm:w-12"
           onPointerDown={event => {
             event.preventDefault()
             dragControls.start(event)
