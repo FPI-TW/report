@@ -525,7 +525,7 @@ function ChatWindow({
                 ) : (
                   <Button
                     variant="default"
-                    className="h-8 rounded-full bg-linear-to-r from-sky-500 to-amber-400 px-4 text-xs text-white shadow-md transition hover:brightness-105 disabled:opacity-30"
+                    className="h-8 rounded-full bg-amber-500/90 px-4 text-xs text-white shadow-md transition hover:brightness-105 disabled:opacity-30"
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || isSending}
                   >
