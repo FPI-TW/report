@@ -1,4 +1,5 @@
 import { S3Client } from "@aws-sdk/client-s3"
+import { REPORT_TYPES, type ReportType } from "@/types/reports"
 
 function requireEnv(name: string): string {
   const v = process.env[name]
@@ -30,18 +31,9 @@ export function getR2Config() {
 
 export const REPORT_PREFIX = "廷豐金融科技晨報_"
 export const REPORT_REGEX = /^廷豐金融科技晨報_(\d{4}-\d{2}-\d{2})\.pdf$/
-export const ALLOWED_REPORT_PREFIXES = [
-  "daily-report/",
-  "weekly-report/",
-  "research-report/",
-  "ai-news/",
-]
-export const ALLOWED_AUDIO_PREFIXES = [
-  "daily-report/audio/",
-  "weekly-report/audio/",
-  "research-report/audio/",
-  "ai-news/audio/",
-]
+export const ALLOWED_REPORT_PREFIXES = REPORT_TYPES.map(type => `${type}/`)
+export const ALLOWED_PDF_PREFIXES = REPORT_TYPES.map(type => `${type}/pdf/`)
+export const ALLOWED_AUDIO_PREFIXES = REPORT_TYPES.map(type => `${type}/audio/`)
 
 export type ReportObject = {
   key: string
@@ -75,19 +67,19 @@ export function buildPublicUrlFromKey(baseUrl: string, key: string): string {
   return `${baseUrl}/${parts.join("/")}`
 }
 
-function sanitizeFileName(fileName: string) {
-  return fileName
-    .trim()
-    .replace(/\.(pdf|mp3)$/i, "")
-    .replace(/[\\]/g, "-")
-    .replace(/\//g, "-")
+function sanitizeFileName(fileName: string): string | null {
+  const trimmed = fileName.trim()
+  if (!trimmed) return null
+  const withoutExtension = trimmed.replace(/\.[^.]+$/, "")
+  const sanitized = withoutExtension.replace(/[\\]/g, "-").replace(/\//g, "-")
+  return sanitized.trim().length > 0 ? sanitized : null
 }
 
 export function buildAudioObjectKey(
-  type: string,
+  type: ReportType,
   fileName: string
 ): string | null {
-  if (!type || !fileName) return null // Invalid type
+  if (!type || !fileName) return null
 
   const sanitized = sanitizeFileName(fileName)
   if (!sanitized) return null
@@ -95,9 +87,28 @@ export function buildAudioObjectKey(
   return `${type}/audio/${sanitized}.mp3`
 }
 
+export function buildPdfObjectKey(
+  type: ReportType,
+  fileName: string
+): string | null {
+  if (!type || !fileName) return null
+
+  const sanitized = sanitizeFileName(fileName)
+  if (!sanitized) return null
+
+  return `${type}/pdf/${sanitized}.pdf`
+}
+
 export function isAllowedAudioKey(key: string): boolean {
   if (!key) return false
   if (key.includes("..") || key.startsWith("/") || key.startsWith("\\"))
     return false
   return ALLOWED_AUDIO_PREFIXES.some(prefix => key.startsWith(prefix))
+}
+
+export function isAllowedPdfKey(key: string): boolean {
+  if (!key) return false
+  if (key.includes("..") || key.startsWith("/") || key.startsWith("\\"))
+    return false
+  return ALLOWED_PDF_PREFIXES.some(prefix => key.startsWith(prefix))
 }

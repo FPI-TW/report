@@ -47,18 +47,7 @@ export default function UploadSection() {
   const filename = watch("filename")
   const fileList = watch("file")
 
-  const prefix = (() => {
-    switch (category) {
-      case "daily-report":
-        return "daily-report/"
-      case "weekly-report":
-        return "weekly-report/"
-      case "research-report":
-        return "research-report/"
-      case "ai-news":
-        return "ai-news/"
-    }
-  })()
+  const prefix = `${category}/pdf/`
 
   const derivedName =
     filename && filename.trim().length > 0 ? filename : fileList?.name
@@ -79,13 +68,12 @@ export default function UploadSection() {
       if (!file) return
 
       const { response: presignResp, data: presignBody } =
-        await UploadApi.createUploadUrl({
+        await UploadApi.createPdfUploadUrl({
           category: parsed.data.category,
           filename:
             parsed.data.filename && parsed.data.filename.trim().length > 0
               ? parsed.data.filename
               : file.name,
-          contentType: file.type || "application/octet-stream",
         })
 
       if (!presignResp.ok || !presignBody?.ok || !presignBody.uploadUrl) {
