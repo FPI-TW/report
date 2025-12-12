@@ -1,11 +1,8 @@
-export const REPORT_CATEGORIES = [
-  "daily-report",
-  "weekly-report",
-  "research-report",
-  "ai-news",
-] as const
+import { REPORT_TYPES, type ReportType } from "@/types/reports"
 
-export type ReportCategory = (typeof REPORT_CATEGORIES)[number]
+export const REPORT_CATEGORIES = REPORT_TYPES
+
+export type ReportCategory = ReportType
 
 export const BRAND = "#ddae58" as const
 

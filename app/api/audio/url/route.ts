@@ -9,6 +9,7 @@ import {
   isAllowedAudioKey,
   makeR2Client,
 } from "@/lib/r2"
+import { isReportType, REPORT_TYPES, type ReportType } from "@/types/reports"
 
 export async function GET(req: NextRequest) {
   const sessionToken = (await cookies()).get(COOKIE_NAME)?.value
@@ -21,11 +22,14 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const keyParam = searchParams.get("key") || ""
-  const type = searchParams.get("type") || ""
+  const requestedType = searchParams.get("type") || ""
   const fileName = searchParams.get("filename") || ""
 
-  const resolvedKey =
-    keyParam || buildAudioObjectKey(type || "dialy-report", fileName)
+  const type: ReportType = isReportType(requestedType)
+    ? requestedType
+    : REPORT_TYPES[0]
+
+  const resolvedKey = keyParam || buildAudioObjectKey(type, fileName)
 
   if (!resolvedKey || !isAllowedAudioKey(resolvedKey)) {
     return new Response(JSON.stringify({ error: "invalid_key" }), {

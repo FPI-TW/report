@@ -1,13 +1,16 @@
-export type UploadCategory =
-  | "daily-report"
-  | "weekly-report"
-  | "research-report"
-  | "ai-news"
+import type { ReportType } from "@/types/reports"
 
-export type UploadRequest = {
-  category: UploadCategory
+export type UploadCategory = ReportType
+
+export type UploadPdfRequest = {
+  category: ReportType
   filename: string
-  contentType: string
+}
+
+export type UploadAudioRequest = {
+  category: ReportType
+  filename: string
+  contentType?: string
 }
 
 export type UploadSuccessResponse = {
@@ -27,10 +30,11 @@ export type UploadErrorResponse = {
 
 export type UploadResponse = UploadSuccessResponse | UploadErrorResponse
 
-export async function createUploadUrl(
-  body: UploadRequest
+async function requestUploadUrl(
+  endpoint: string,
+  body: UploadPdfRequest | UploadAudioRequest
 ): Promise<{ response: Response; data: UploadResponse }> {
-  const response = await fetch("/api/upload", {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -41,4 +45,16 @@ export async function createUploadUrl(
   const data = (await response.json().catch(() => ({}))) as UploadResponse
 
   return { response, data }
+}
+
+export function createPdfUploadUrl(
+  body: UploadPdfRequest
+): Promise<{ response: Response; data: UploadResponse }> {
+  return requestUploadUrl("/api/upload/pdf", body)
+}
+
+export function createAudioUploadUrl(
+  body: UploadAudioRequest
+): Promise<{ response: Response; data: UploadResponse }> {
+  return requestUploadUrl("/api/upload/audio", body)
 }

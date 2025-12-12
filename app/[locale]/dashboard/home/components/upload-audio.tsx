@@ -23,8 +23,8 @@ type FormValues = {
   filename?: string
 }
 
-export default function UploadSection() {
-  const t = useTranslations("dashboard_upload")
+export default function UploadAudioSection() {
+  const t = useTranslations("dashboard_upload_audio")
   const tDash = useTranslations("dashboard")
   const {
     register,
@@ -47,14 +47,13 @@ export default function UploadSection() {
   const filename = watch("filename")
   const fileList = watch("file")
 
-  const prefix = `${category}/pdf/`
+  const prefix = `${category}/audio/`
 
   const derivedName =
     filename && filename.trim().length > 0 ? filename : fileList?.name
   const derivedKey = derivedName ? `${prefix}${derivedName}` : ""
 
   async function onSubmitRaw(data: FormValues) {
-    // Validate with zod at runtime (file optional in RHF, required in schema)
     const parsed = schema.safeParse({
       category: data.category,
       filename: data.filename,
@@ -68,12 +67,13 @@ export default function UploadSection() {
       if (!file) return
 
       const { response: presignResp, data: presignBody } =
-        await UploadApi.createPdfUploadUrl({
+        await UploadApi.createAudioUploadUrl({
           category: parsed.data.category,
           filename:
             parsed.data.filename && parsed.data.filename.trim().length > 0
               ? parsed.data.filename
               : file.name,
+          contentType: file.type || "audio/mpeg",
         })
 
       if (!presignResp.ok || !presignBody?.ok || !presignBody.uploadUrl) {
@@ -91,7 +91,7 @@ export default function UploadSection() {
       const uploadResp = await fetch(presignBody.uploadUrl as string, {
         method: "PUT",
         headers: {
-          "content-type": file.type || "application/octet-stream",
+          "content-type": file.type || "audio/mpeg",
         },
         body: file,
       })
@@ -175,7 +175,7 @@ export default function UploadSection() {
           </div>
           <input
             type="file"
-            accept="application/pdf"
+            accept="audio/*"
             className="hidden"
             ref={fileInputRef}
             onChange={e => {

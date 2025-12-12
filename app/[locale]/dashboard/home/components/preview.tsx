@@ -36,11 +36,15 @@ function monthLabel(m: number) {
 async function fetchReports(
   category: ReportCategory,
   page: number,
-  months: number
+  months: number,
+  fileType: "pdf" | "audio"
 ): Promise<PreviewResponse> {
-  const res = await fetch(`/api/${category}?page=${page}&months=${months}`, {
-    cache: "no-store",
-  })
+  const res = await fetch(
+    `/api/${category}?page=${page}&months=${months}&fileType=${fileType}`,
+    {
+      cache: "no-store",
+    }
+  )
   if (!res.ok) {
     throw new Error("list_failed")
   }
@@ -51,6 +55,7 @@ type PreviewSectionProps = {
   isActive: boolean
   category: ReportCategory
   page: number
+  fileType: "pdf" | "audio"
   onCategoryChange: (category: ReportCategory) => void
   onPageChange: (page: number) => void
 }
@@ -59,6 +64,7 @@ export default function PreviewSection({
   isActive,
   category,
   page,
+  fileType,
   onCategoryChange,
   onPageChange,
 }: PreviewSectionProps) {
@@ -74,8 +80,8 @@ export default function PreviewSection({
     isFetching: isPreviewFetching,
     refetch: refetchPreview,
   } = useQuery<PreviewResponse>({
-    queryKey: ["dashboard-preview", category, page],
-    queryFn: () => fetchReports(category, page, PREVIEW_MONTHS),
+    queryKey: ["dashboard-preview", category, page, fileType],
+    queryFn: () => fetchReports(category, page, PREVIEW_MONTHS, fileType),
     enabled: isActive,
   })
 
@@ -116,9 +122,15 @@ export default function PreviewSection({
     <div className="space-y-6">
       <div className="relative space-y-2">
         <h2 className="text-2xl font-semibold" style={{ color: BRAND }}>
-          {tHome("preview_title")}
+          {fileType === "audio"
+            ? tHome("preview_audio_title")
+            : tHome("preview_pdf_title")}
         </h2>
-        <p className="text-sm text-gray-700">{tHome("preview_description")}</p>
+        <p className="text-sm text-gray-700">
+          {fileType === "audio"
+            ? tHome("preview_audio_description")
+            : tHome("preview_pdf_description")}
+        </p>
         <div className="mt-2" style={{ borderBottom: `2px solid ${BRAND}` }} />
       </div>
 
