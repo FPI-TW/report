@@ -36,6 +36,12 @@ export const ALLOWED_REPORT_PREFIXES = [
   "research-report/",
   "ai-news/",
 ]
+export const ALLOWED_AUDIO_PREFIXES = [
+  "daily-report/audio/",
+  "weekly-report/audio/",
+  "research-report/audio/",
+  "ai-news/audio/",
+]
 
 export type ReportObject = {
   key: string
@@ -67,4 +73,31 @@ export function isAllowedReportKey(key: string): boolean {
 export function buildPublicUrlFromKey(baseUrl: string, key: string): string {
   const parts = key.split("/").map(encodeURIComponent)
   return `${baseUrl}/${parts.join("/")}`
+}
+
+function sanitizeFileName(fileName: string) {
+  return fileName
+    .trim()
+    .replace(/\.(pdf|mp3)$/i, "")
+    .replace(/[\\]/g, "-")
+    .replace(/\//g, "-")
+}
+
+export function buildAudioObjectKey(
+  type: string,
+  fileName: string
+): string | null {
+  if (!type || !fileName) return null // Invalid type
+
+  const sanitized = sanitizeFileName(fileName)
+  if (!sanitized) return null
+
+  return `${type}/audio/${sanitized}.mp3`
+}
+
+export function isAllowedAudioKey(key: string): boolean {
+  if (!key) return false
+  if (key.includes("..") || key.startsWith("/") || key.startsWith("\\"))
+    return false
+  return ALLOWED_AUDIO_PREFIXES.some(prefix => key.startsWith(prefix))
 }

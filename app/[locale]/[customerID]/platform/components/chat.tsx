@@ -35,7 +35,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
 
   return (
     <motion.div
-      className="fixed right-4 bottom-4 z-40 sm:right-6 sm:bottom-6"
+      className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6"
       drag
       dragControls={dragControls}
       dragListener={false}
@@ -46,7 +46,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
       }}
       dragConstraints={dragConstraints}
     >
-      <div className="relative flex flex-col items-end gap-2">
+      <div className="relative flex flex-col items-end gap-3">
         <ChatWindow
           isOpen={chatWindow.isOpen}
           onClose={event => {
@@ -60,7 +60,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
 
         <button
           type="button"
-          className="bg-background hover:bg-muted flex h-11 w-11 cursor-move items-center justify-center rounded-full border shadow-lg sm:h-12 sm:w-12"
+          className="flex size-10 cursor-pointer items-center justify-center rounded-full border border-white/50 bg-linear-to-br from-sky-500 via-cyan-500 to-amber-400 shadow-[0_12px_30px_rgba(14,165,233,0.4)] transition hover:shadow-[0_16px_38px_rgba(245,158,11,0.45)] sm:h-12 sm:w-12"
           onPointerDown={event => {
             event.preventDefault()
             dragControls.start(event)
@@ -77,17 +77,21 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
         >
           <span className="sr-only">{t("open_chat")}</span>
           <svg
-            className="text-foreground h-5 w-5 sm:h-6 sm:w-6"
+            className="size-5 text-white sm:size-6"
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
             <path
-              d="M4 5h16v9H7l-3 3V5z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
+              d="M5 4h14a2 2 0 0 1 2 2v7.6a2 2 0 0 1-2 2H12l-3.8 3.3c-.6.5-1.5.1-1.5-.7V15H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+              fill="currentColor"
+            />
+            <circle cx="9.5" cy="10" r="1" fill="white" />
+            <circle cx="14.5" cy="10" r="1" fill="white" />
+            <path
+              d="M11.5 13c.4.6 1.6.6 2 0"
+              stroke="white"
+              strokeWidth="1.2"
               strokeLinecap="round"
-              strokeLinejoin="round"
             />
           </svg>
         </button>
@@ -384,21 +388,36 @@ function ChatWindow({
 
   return (
     <div
-      className={`bg-background absolute right-0 bottom-14 w-[min(100vw-2.5rem,36rem)] overflow-hidden rounded-lg border shadow-lg transition duration-150 sm:bottom-16 ${
+      className={`absolute right-0 bottom-16 w-[min(100vw-2.5rem,38rem)] overflow-hidden rounded-2xl border border-cyan-100/70 bg-linear-to-br from-white via-sky-50 to-amber-50 shadow-[0_16px_40px_rgba(14,165,233,0.18)] transition duration-150 sm:bottom-20 ${
         isOpen
           ? "pointer-events-auto opacity-100"
-          : "pointer-events-none translate-y-2 opacity-0"
+          : "pointer-events-none translate-y-3 opacity-0"
       }`}
       aria-hidden={!isOpen}
       hidden={!isOpen}
     >
-      <header className="flex items-center justify-between border-b px-3 py-2">
-        <div className="flex flex-col gap-0.5">
-          <div className="text-sm font-semibold sm:text-base">{t("title")}</div>
+      <header className="flex items-center justify-between gap-3 border-b border-cyan-100/70 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-sky-500 to-amber-400 text-white shadow-inner shadow-sky-100">
+            <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v7.75a1.5 1.5 0 0 1-1.5 1.5H11l-3.5 3V14h-2A1.5 1.5 0 0 1 4 12.5Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <div className="text-sm leading-tight font-semibold sm:text-base">
+              {t("title")}
+            </div>
+            <div className="text-[11px] font-medium tracking-[0.22em] text-sky-600 uppercase">
+              AI Copilot
+            </div>
+          </div>
         </div>
         <button
           type="button"
-          className="text-muted-foreground hover:bg-muted rounded-full px-2 py-1 text-xs"
+          className="text-muted-foreground rounded-full px-2 py-1 text-xs hover:bg-sky-50"
           onClick={onClose}
           aria-label={t("close_chat")}
           title={t("close_chat")}
@@ -407,11 +426,11 @@ function ChatWindow({
         </button>
       </header>
 
-      <div className="h-[min(450px,50vh)] text-xs md:text-sm">
+      <div className="h-[min(480px,55vh)] text-xs md:text-sm">
         <div className="relative flex h-full flex-col">
           <div
             ref={messageListRef}
-            className="flex-1 space-y-2 overflow-y-auto px-3 py-2"
+            className="flex-1 space-y-2 overflow-y-auto px-4 py-3"
             onScroll={handleMessageListScroll}
           >
             {messages.map(message => (
@@ -425,10 +444,10 @@ function ChatWindow({
               >
                 <div
                   className={cn(
-                    "max-w-[85%] rounded-md border px-2 py-1 leading-relaxed",
+                    "max-w-[85%] rounded-xl border px-3 py-2 leading-relaxed shadow-sm",
                     message.direction === "outgoing"
-                      ? "bg-muted/60 text-foreground border-border"
-                      : "bg-muted/60 text-foreground border-primary/20"
+                      ? "text-foreground border-cyan-100 bg-white"
+                      : "text-foreground border-cyan-100/70 bg-linear-to-br from-cyan-50 to-amber-50"
                   )}
                 >
                   {message.role === "assistant" &&
@@ -456,17 +475,17 @@ function ChatWindow({
           {!isAtBottom && (
             <button
               type="button"
-              className="bg-background/90 hover:bg-muted text-foreground absolute right-3 bottom-20 z-10 rounded-full border px-3 py-1 text-[11px] shadow"
+              className="text-foreground absolute right-3 bottom-20 z-10 rounded-full border border-cyan-100 bg-white/90 px-3 py-1 text-[11px] shadow hover:bg-sky-50"
               onClick={handleScrollToBottom}
             >
               {t("scroll_to_latest")}
             </button>
           )}
 
-          <div className="bg-muted/30 border-t px-3 py-3">
+          <div className="border-t border-cyan-100/70 bg-white/80 px-4 py-3 backdrop-blur">
             <div className="flex flex-col gap-2">
               {attachedText && (
-                <div className="bg-background relative rounded-md border px-3 py-2 shadow-sm">
+                <div className="relative rounded-lg border border-cyan-100 bg-white px-3 py-2 shadow-sm">
                   <div className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
                     {t("attached_title")}
                   </div>
@@ -487,7 +506,7 @@ function ChatWindow({
               <div className="flex items-end gap-2">
                 <textarea
                   rows={2}
-                  className="bg-background focus-visible:ring-ring h-12 flex-1 resize-none rounded border px-2 py-2 text-sm outline-none focus-visible:ring-1"
+                  className="h-12 flex-1 resize-none rounded border border-cyan-100 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                   placeholder={t("placeholder")}
                   value={input}
                   onChange={event => setInput(event.target.value)}
@@ -498,7 +517,7 @@ function ChatWindow({
                 {isSending && abortController ? (
                   <Button
                     variant="outline"
-                    className="h-8 rounded px-3 text-xs"
+                    className="h-8 rounded-full border-cyan-200 px-4 text-xs shadow-sm"
                     onClick={handleStop}
                   >
                     {t("stop")}
@@ -506,7 +525,7 @@ function ChatWindow({
                 ) : (
                   <Button
                     variant="default"
-                    className="h-8 rounded px-3 text-xs disabled:opacity-20"
+                    className="h-8 rounded-full bg-linear-to-r from-sky-500 to-amber-400 px-4 text-xs text-white shadow-md transition hover:brightness-105 disabled:opacity-30"
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || isSending}
                   >

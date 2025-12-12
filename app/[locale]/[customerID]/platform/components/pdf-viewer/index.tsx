@@ -17,11 +17,13 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+import AudioFeatureBar from "../audio-feature-bar"
 import Chat from "../chat"
 import type { ReportType } from "../../lib/query-report-by-type"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
 import useZoom from "./hooks/useZoom"
+import { AudioApi } from "@/lib/api"
 
 type Props = {
   url: string
@@ -29,6 +31,7 @@ type Props = {
   errorLabel: string
   reportType: ReportType
   reportDate: string
+  fileName?: string | undefined
   onClose: () => void
 }
 
@@ -38,6 +41,7 @@ export default function PdfViewer({
   errorLabel,
   reportType,
   reportDate,
+  fileName,
   onClose,
 }: Props) {
   const t = useTranslations("pdf_viewer")
@@ -46,6 +50,8 @@ export default function PdfViewer({
   const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
   const [pdfText, setPdfText] = useState("")
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [audioReady, setAudioReady] = useState<boolean>(false)
   const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
     useZoom()
 
@@ -157,6 +163,43 @@ export default function PdfViewer({
     setPdfText(text)
   }
 
+  useEffect(() => {
+    const baseName =
+      (fileName ?? reportDate ?? "")
+        .split("/")
+        .pop()
+        ?.replace(/\.[^.]+$/i, "")
+        ?.trim()
+        ?.replace(/[\\/]/g, "-") || ""
+
+    if (!baseName) {
+      setAudioUrl(null)
+      setAudioReady(false)
+      return
+    }
+    console.log(baseName)
+    const key = `${reportType}/audio/${baseName}.mp3`
+
+    let cancelled = false
+    const fetchAudio = async () => {
+      const { response, data } = await AudioApi.fetchAudioUrl(key)
+      if (cancelled) return
+      if (response.ok && "url" in data) {
+        setAudioUrl(data.url)
+        setAudioReady(true)
+      } else {
+        setAudioUrl(null)
+        setAudioReady(false)
+      }
+    }
+
+    void fetchAudio()
+
+    return () => {
+      cancelled = true
+    }
+  }, [fileName, reportDate, reportType])
+
   const pageHeight = pdfHeight > 0 ? pdfHeight * appliedZoom : 0
 
   return (
@@ -167,6 +210,12 @@ export default function PdfViewer({
           reportType={reportType}
           reportDate={reportDate}
           pdfText={pdfText}
+        />
+        <AudioFeatureBar
+          reportType={reportType}
+          reportDate={reportDate}
+          fileName={fileName}
+          audioUrl={audioReady ? audioUrl : null}
         />
 
         {/* Main Content */}
