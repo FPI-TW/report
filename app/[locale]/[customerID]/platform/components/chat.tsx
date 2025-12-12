@@ -35,7 +35,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
 
   return (
     <motion.div
-      className="fixed right-4 bottom-4 z-50 sm:right-6 sm:bottom-6"
+      className="fixed right-4 bottom-4 z-50 sm:right-12 sm:bottom-6"
       drag
       dragControls={dragControls}
       dragListener={false}
@@ -388,7 +388,7 @@ function ChatWindow({
 
   return (
     <div
-      className={`absolute right-0 bottom-16 w-[min(100vw-2.5rem,38rem)] overflow-hidden rounded-2xl border border-cyan-100/70 bg-linear-to-br from-white via-sky-50 to-amber-50 shadow-[0_16px_40px_rgba(14,165,233,0.18)] transition duration-150 sm:bottom-20 ${
+      className={`absolute right-0 bottom-[calc(100%+12px)] w-[min(100vw-2.5rem,38rem)] overflow-hidden rounded-2xl border border-cyan-100/70 bg-linear-to-br from-white via-sky-50 to-amber-50 shadow-[0_16px_40px_rgba(14,165,233,0.18)] transition duration-150 sm:bottom-16 ${
         isOpen
           ? "pointer-events-auto opacity-100"
           : "pointer-events-none translate-y-3 opacity-0"
