@@ -36,7 +36,7 @@ type ApiResponse = {
 
 const BRAND = "#ddae58" as const
 const months = 3 as const
-const announcement = process.env.NEXT_PUBLIC_ANNOUNCEMENT
+const announcement = process.env.NEXT_PUBLIC_ANNOUNCEMENT === "true"
 
 function monthLabel(m: number) {
   return new Date(2000, m - 1, 1).toLocaleString(undefined, { month: "long" })
