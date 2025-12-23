@@ -129,6 +129,12 @@ export default function DashboardPage() {
           <p className="text-md whitespace-pre-line text-gray-700">
             {t(descKeyMap[type])}
           </p>
+          {type === "daily-report" && (
+            <p className="text-md space-x-2 whitespace-pre-line text-red-500">
+              <span className="font-semibold italic">＊NEW＊</span>
+              <span>{t("dialy_additional")}</span>
+            </p>
+          )}
           <div
             className="mt-3"
             style={{ borderBottom: `2px solid ${BRAND}` }}
