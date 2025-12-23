@@ -126,7 +126,9 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
             {t(titleKeyMap[type])}
           </h1>
-          <p className="text-md text-gray-700">{t(descKeyMap[type])}</p>
+          <p className="text-md whitespace-pre-line text-gray-700">
+            {t(descKeyMap[type])}
+          </p>
           <div
             className="mt-3"
             style={{ borderBottom: `2px solid ${BRAND}` }}
