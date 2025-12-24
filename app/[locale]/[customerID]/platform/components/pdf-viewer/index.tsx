@@ -372,8 +372,8 @@ function PdfPage({
         <Page
           pageNumber={pageNumber}
           height={height}
-          renderTextLayer
-          renderAnnotationLayer
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
         />
       </div>
     </div>
