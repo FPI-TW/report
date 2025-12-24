@@ -340,12 +340,7 @@ function PdfPage({
       style={{ minHeight: height }}
     >
       <div className="relative inline-block">
-        <Page
-          pageNumber={pageNumber}
-          height={height}
-          renderTextLayer
-          renderAnnotationLayer
-        />
+        <Page pageNumber={pageNumber} height={height} renderTextLayer />
       </div>
     </div>
   )
