@@ -52,7 +52,6 @@ export default function PdfViewer({
   const [pdfText, setPdfText] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioReady, setAudioReady] = useState<boolean>(false)
-  const [renderedPages, setRenderedPages] = useState(0)
   const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
     useZoom()
 
@@ -112,31 +111,6 @@ export default function PdfViewer({
       setCurrentPage(1)
     }
   }, [numPages])
-
-  useEffect(() => {
-    if (!numPages || numPages <= 0) {
-      setRenderedPages(0)
-      return
-    }
-
-    setRenderedPages(Math.min(10, numPages))
-
-    const intervalId = window.setInterval(() => {
-      setRenderedPages(prev => {
-        if (prev >= numPages) {
-          window.clearInterval(intervalId)
-          return prev
-        }
-        const next = Math.min(prev + 10, numPages)
-        if (next >= numPages) {
-          window.clearInterval(intervalId)
-        }
-        return next
-      })
-    }, 1000)
-
-    return () => window.clearInterval(intervalId)
-  }, [numPages, url])
 
   const handleAiInsights = () => {
     if (typeof window === "undefined") return
@@ -314,19 +288,16 @@ export default function PdfViewer({
                 >
                   <div className="flex w-full flex-col items-center gap-6">
                     {numPages &&
-                      Array.from(
-                        { length: Math.min(renderedPages, numPages) },
-                        (_, index) => (
-                          <PdfPage
-                            key={`page-${index + 1}`}
-                            pageNumber={index + 1}
-                            height={pageHeight}
-                            registerPageRef={node => {
-                              pageRefs.current[index] = node
-                            }}
-                          />
-                        )
-                      )}
+                      Array.from({ length: numPages }, (_, index) => (
+                        <PdfPage
+                          key={`page-${index + 1}`}
+                          pageNumber={index + 1}
+                          height={pageHeight}
+                          registerPageRef={node => {
+                            pageRefs.current[index] = node
+                          }}
+                        />
+                      ))}
                   </div>
                 </Document>
               </div>
