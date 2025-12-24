@@ -293,6 +293,13 @@ export default function PdfViewer({
                           key={`page-${index + 1}`}
                           pageNumber={index + 1}
                           height={pageHeight}
+                          isFocused={
+                            Math.abs(
+                              index +
+                                1 -
+                                Math.min(Math.max(currentPage, 1), numPages)
+                            ) <= 2
+                          }
                           registerPageRef={node => {
                             pageRefs.current[index] = node
                           }}
@@ -324,10 +331,12 @@ export default function PdfViewer({
 function PdfPage({
   pageNumber,
   height,
+  isFocused,
   registerPageRef,
 }: {
   pageNumber: number
   height: number
+  isFocused: boolean
   registerPageRef?: (node: HTMLDivElement | null) => void
 }) {
   return (
@@ -343,8 +352,9 @@ function PdfPage({
         <Page
           pageNumber={pageNumber}
           height={height}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
+          renderTextLayer
+          renderAnnotationLayer
+          devicePixelRatio={isFocused ? 1 : 0.01}
         />
       </div>
     </div>

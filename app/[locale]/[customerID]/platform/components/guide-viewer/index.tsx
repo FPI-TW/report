@@ -211,6 +211,13 @@ function GuideViewerContent({
                       key={`page-${index + 1}`}
                       pageNumber={index + 1}
                       height={pageHeight}
+                      isFocused={
+                        Math.abs(
+                          index +
+                            1 -
+                            Math.min(Math.max(currentPage, 1), numPages)
+                        ) <= 2
+                      }
                       registerPageRef={node => {
                         pageRefs.current[index] = node
                       }}
@@ -228,10 +235,12 @@ function GuideViewerContent({
 function GuidePage({
   pageNumber,
   height,
+  isFocused,
   registerPageRef,
 }: {
   pageNumber: number
   height: number
+  isFocused: boolean
   registerPageRef?: (node: HTMLDivElement | null) => void
 }) {
   return (
@@ -244,7 +253,12 @@ function GuidePage({
       style={{ minHeight: height }}
     >
       <div className="relative inline-block">
-        <Page pageNumber={pageNumber} height={height} />
+        <Page
+          pageNumber={pageNumber}
+          height={height}
+          renderAnnotationLayer
+          devicePixelRatio={isFocused ? 1 : 0.01}
+        />
       </div>
     </div>
   )
