@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
@@ -68,6 +68,17 @@ export default function LoginForm({ customerID }: LoginFormProps) {
     router.push(`/${locale}/${customerID}/platform`)
   }
 
+  const formTitle = useMemo(() => {
+    switch (customerID) {
+      case "tingfong":
+        return "廷豐金融科技報告機器人"
+      case "marketing":
+        return "廷豐&庚宸金融科技報告機器人"
+      default:
+        return t("login_title")
+    }
+  }, [customerID, t])
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -76,9 +87,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       {/* backdrop for readability */}
       <div className="space-y-4 bg-[#e5e5e5]/95 px-4 py-5 backdrop-blur-sm sm:p-6 md:space-y-5 md:p-8">
         <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
-          {customerID === "tingfong"
-            ? "廷豐金融科技報告機器人"
-            : t(customerID) + " - " + t("login_title")}
+          {formTitle}
         </h2>
 
         <div className="space-y-4">
