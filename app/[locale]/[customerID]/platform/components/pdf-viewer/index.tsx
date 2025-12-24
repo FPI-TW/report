@@ -49,11 +49,14 @@ export default function PdfViewer({
   const [numPages, setNumPages] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(0)
   const [pdfText, setPdfText] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioReady, setAudioReady] = useState<boolean>(false)
+  const [visibleRange, setVisibleRange] = useState({ start: 1, end: 1 })
   const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
     useZoom()
+  const pageHeight = pdfHeight > 0 ? pdfHeight * appliedZoom : 0
 
   const pdfContainerRef = useRef<HTMLDivElement | null>(null)
   const pageRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -66,6 +69,7 @@ export default function PdfViewer({
 
     const updateHeight = () => {
       setPdfHeight(container.clientHeight * 0.95)
+      setContainerHeight(container.clientHeight)
     }
 
     updateHeight()
@@ -107,8 +111,53 @@ export default function PdfViewer({
   }, [numPages, pdfHeight])
 
   useEffect(() => {
+    if (!pdfContainerRef.current || !numPages || pageHeight <= 0) return
+    if (containerHeight <= 0) return
+
+    const container = pdfContainerRef.current
+    const pageGap = 24
+    const pageBlockHeight = pageHeight + pageGap
+    const overscanPages = 1
+    let frameId: number | null = null
+
+    const updateVisibleRange = () => {
+      const start = Math.max(
+        1,
+        Math.floor(container.scrollTop / pageBlockHeight) + 1 - overscanPages
+      )
+      const end = Math.min(
+        numPages,
+        Math.ceil((container.scrollTop + containerHeight) / pageBlockHeight) +
+          overscanPages
+      )
+      setVisibleRange(prev =>
+        prev.start === start && prev.end === end ? prev : { start, end }
+      )
+    }
+
+    const handleScroll = () => {
+      if (frameId !== null) return
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null
+        updateVisibleRange()
+      })
+    }
+
+    updateVisibleRange()
+    container.addEventListener("scroll", handleScroll, { passive: true })
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId)
+      }
+      container.removeEventListener("scroll", handleScroll)
+    }
+  }, [numPages, pageHeight, containerHeight])
+
+  useEffect(() => {
     if (numPages && numPages > 0) {
       setCurrentPage(1)
+      setVisibleRange({ start: 1, end: Math.min(numPages, 2) })
     }
   }, [numPages])
 
@@ -160,6 +209,7 @@ export default function PdfViewer({
     }
 
     const text = await parsePdfTextFromUrl(url)
+    console.log(text)
     setPdfText(text)
   }
 
@@ -199,8 +249,6 @@ export default function PdfViewer({
       cancelled = true
     }
   }, [fileName, reportDate, reportType])
-
-  const pageHeight = pdfHeight > 0 ? pdfHeight * appliedZoom : 0
 
   return (
     <>
@@ -293,6 +341,10 @@ export default function PdfViewer({
                           key={`page-${index + 1}`}
                           pageNumber={index + 1}
                           height={pageHeight}
+                          isVisible={
+                            index + 1 >= visibleRange.start &&
+                            index + 1 <= visibleRange.end
+                          }
                           registerPageRef={node => {
                             pageRefs.current[index] = node
                           }}
@@ -324,10 +376,12 @@ export default function PdfViewer({
 function PdfPage({
   pageNumber,
   height,
+  isVisible,
   registerPageRef,
 }: {
   pageNumber: number
   height: number
+  isVisible: boolean
   registerPageRef?: (node: HTMLDivElement | null) => void
 }) {
   return (
@@ -340,7 +394,11 @@ function PdfPage({
       style={{ minHeight: height }}
     >
       <div className="relative inline-block">
-        <Page pageNumber={pageNumber} height={height} renderTextLayer />
+        <Page
+          pageNumber={pageNumber}
+          height={height}
+          renderTextLayer={isVisible}
+        />
       </div>
     </div>
   )
