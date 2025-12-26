@@ -73,7 +73,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       case "tingfong":
         return "廷豐金融科技報告機器人"
       case "marketing":
-        return "庚宸 - 廷豐金融科技報告機器人"
+        return "廷豐金融科技報告機器人"
       default:
         return t(customerID) + " - " + t("login_title")
     }
