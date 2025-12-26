@@ -2,13 +2,11 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "motion/react"
 import useDialog from "@/hooks/useDialog"
 import PdfViewer from "./pdf-viewer"
 import type { ReportType } from "../lib/query-report-by-type"
-import { ReportsApi } from "@/lib/api"
 
 export type PdfSource = { key: string; date: string; url: string }
 
@@ -24,23 +22,10 @@ export default function PdfItem({ item, name, reportType }: Props) {
   const fileName = decodeURIComponent(item.key.split("/").pop() || item.key)
   const pdfModal = useDialog()
   const [viewerUrl, setViewerUrl] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
 
-  const handleClick = async () => {
-    if (isLoading) return
-    setIsLoading(true)
-    try {
-      const { response, data } = await ReportsApi.fetchReportUrl(item.key)
-      if (!response.ok || !("url" in data)) {
-        throw new Error("sign_failed")
-      }
-      setViewerUrl(data.url)
-      pdfModal.open()
-    } catch {
-      toast.error(t("error"))
-    } finally {
-      setIsLoading(false)
-    }
+  const handleClick = () => {
+    setViewerUrl(`/api/reports/open?key=${encodeURIComponent(item.key)}`)
+    pdfModal.open()
   }
 
   return (
@@ -89,7 +74,7 @@ export default function PdfItem({ item, name, reportType }: Props) {
                   />
                 ) : (
                   <div className="text-muted-foreground flex flex-1 items-center justify-center text-xs">
-                    {isLoading ? "Loading…" : "No file to display."}
+                    No file to display.
                   </div>
                 )}
               </motion.div>

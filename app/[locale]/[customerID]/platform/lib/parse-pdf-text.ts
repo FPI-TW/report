@@ -1,7 +1,9 @@
 import { pdfjs } from "react-pdf"
 
-export async function parsePdfTextFromUrl(url: string): Promise<string> {
-  if (!url) return ""
+export async function parsePdfTextFromUrl(
+  url: string
+): Promise<{ text: string; numPages: number }> {
+  if (!url) return { text: "", numPages: 0 }
 
   try {
     const pdf = await pdfjs.getDocument(url).promise
@@ -29,9 +31,9 @@ export async function parsePdfTextFromUrl(url: string): Promise<string> {
       pages.push(strings)
     }
 
-    return pages.join("\n\n")
+    return { text: pages.join("\n\n"), numPages: pdf.numPages }
   } catch (error) {
     console.warn("Failed to extract PDF text", error)
-    return ""
+    return { text: "", numPages: 0 }
   }
 }
