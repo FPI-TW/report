@@ -6,7 +6,7 @@
 - Always explain the reason the impact of the change when making a big or complex change.
 - Always run `pnpm format`, `pnpm type-check` and `pnpm lint:check` when finishing a task.
 - Never modify the part of the code that is not related to the current task if you think it is necessary, discuss with me.
-- Never use git commands if you think it is necessary, discuss with me.
+- Never use git commands except i ask, if you think it is necessary, discuss with me.
 
 ## Project Structure & Module Organization
 
