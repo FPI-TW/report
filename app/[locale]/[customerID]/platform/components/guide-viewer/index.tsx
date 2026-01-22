@@ -132,7 +132,7 @@ function GuideViewerContent({
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <header className="flex flex-wrap items-center gap-3 border-b px-4 py-3">
+      <header className="flex flex-wrap items-center gap-2 border-b px-4 py-3 sm:gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold tracking-wide text-gray-500 uppercase">
             {t("title")}
@@ -152,7 +152,7 @@ function GuideViewerContent({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
@@ -164,7 +164,7 @@ function GuideViewerContent({
             >
               -
             </Button>
-            <p className="text-muted-foreground w-14 text-center text-sm font-semibold">
+            <p className="text-muted-foreground hidden w-14 text-center text-sm font-semibold sm:block">
               {Math.round(zoom * 100)}%
             </p>
             <Button
