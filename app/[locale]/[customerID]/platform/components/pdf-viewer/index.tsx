@@ -4,7 +4,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Document, Page } from "react-pdf"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,13 @@ import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
 import useZoom from "./hooks/useZoom"
 import { AudioApi } from "@/lib/api"
+import {
+  type PageRange,
+  isPageInRanges,
+  isRangeCovered,
+  mergeRanges,
+  normalizeInitialPages,
+} from "./lib/page-rendering"
 
 type Props = {
   url: string
@@ -34,6 +41,8 @@ type Props = {
   fileName?: string | undefined
   onClose: () => void
 }
+
+const initialPages = [0, 1, 2, 3, 4, 5, 18, 28, 36, 59, 68, 73, 90]
 
 export default function PdfViewer({
   url,
@@ -52,7 +61,7 @@ export default function PdfViewer({
   const [pdfText, setPdfText] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioReady, setAudioReady] = useState<boolean>(false)
-  const [renderedPages, setRenderedPages] = useState(0)
+  const [renderedRanges, setRenderedRanges] = useState<PageRange[]>([])
   const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
     useZoom()
 
@@ -60,6 +69,14 @@ export default function PdfViewer({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const { chatHightlight, chatWindow } = useChat()
+  const initialPageAnchors = useMemo(
+    () => normalizeInitialPages(initialPages, numPages),
+    [numPages]
+  )
+  const initialPageSet = useMemo(
+    () => new Set(initialPageAnchors),
+    [initialPageAnchors]
+  )
 
   useEffect(() => {
     if (!pdfContainerRef.current) return
@@ -114,29 +131,21 @@ export default function PdfViewer({
   }, [numPages])
 
   useEffect(() => {
-    if (!numPages || numPages <= 0) {
-      setRenderedPages(0)
-      return
-    }
+    if (!numPages || numPages <= 0) return
+    if (!Number.isFinite(currentPage) || currentPage <= 0) return
 
-    setRenderedPages(Math.min(10, numPages))
+    const nextAnchor = initialPageAnchors.find(page => page > currentPage)
+    const rangeEnd = nextAnchor ? Math.min(nextAnchor - 1, numPages) : numPages
 
-    const intervalId = window.setInterval(() => {
-      setRenderedPages(prev => {
-        if (prev >= numPages) {
-          window.clearInterval(intervalId)
-          return prev
-        }
-        const next = Math.min(prev + 10, numPages)
-        if (next >= numPages) {
-          window.clearInterval(intervalId)
-        }
-        return next
-      })
-    }, 1000)
+    if (rangeEnd < currentPage) return
 
-    return () => window.clearInterval(intervalId)
-  }, [numPages, url])
+    const nextRange = { start: currentPage, end: rangeEnd }
+
+    setRenderedRanges(prev => {
+      if (isRangeCovered(prev, nextRange)) return prev
+      return mergeRanges(prev, nextRange)
+    })
+  }, [currentPage, initialPageAnchors, numPages])
 
   const handleAiInsights = () => {
     if (typeof window === "undefined") return
@@ -314,19 +323,24 @@ export default function PdfViewer({
                 >
                   <div className="flex w-full flex-col items-center gap-6">
                     {numPages &&
-                      Array.from(
-                        { length: Math.min(renderedPages, numPages) },
-                        (_, index) => (
+                      Array.from({ length: numPages }, (_, index) => {
+                        const pageNumber = index + 1
+                        const shouldRender =
+                          initialPageSet.has(pageNumber) ||
+                          isPageInRanges(pageNumber, renderedRanges)
+
+                        if (!shouldRender) return null
+                        return (
                           <PdfPage
-                            key={`page-${index + 1}`}
-                            pageNumber={index + 1}
+                            key={`page-${pageNumber}`}
+                            pageNumber={pageNumber}
                             height={pageHeight}
                             registerPageRef={node => {
                               pageRefs.current[index] = node
                             }}
                           />
                         )
-                      )}
+                      })}
                   </div>
                 </Document>
               </div>
