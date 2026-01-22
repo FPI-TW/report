@@ -4,7 +4,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Document, Page } from "react-pdf"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,58 @@ type Props = {
   onClose: () => void
 }
 
+const initialPages = [0, 1, 2, 3, 4, 5, 18, 28, 36, 59, 68, 73, 90]
+
+type PageRange = {
+  start: number
+  end: number
+}
+
+const normalizeInitialPages = (pageCount: number | null) => {
+  if (!pageCount) return []
+  const pageSet = new Set<number>()
+  initialPages.forEach(page => {
+    if (page >= 1 && page <= pageCount) {
+      pageSet.add(page)
+    }
+  })
+  return Array.from(pageSet).sort((a, b) => a - b)
+}
+
+const isRangeCovered = (ranges: PageRange[], nextRange: PageRange) => {
+  for (const range of ranges) {
+    if (nextRange.start < range.start) return false
+    if (range.start <= nextRange.start && range.end >= nextRange.end) {
+      return true
+    }
+  }
+  return false
+}
+
+const mergeRanges = (ranges: PageRange[], nextRange: PageRange) => {
+  const ordered = [...ranges, nextRange].sort((a, b) => a.start - b.start)
+  const merged: PageRange[] = []
+
+  ordered.forEach(range => {
+    const lastRange = merged[merged.length - 1]
+    if (!lastRange || range.start > lastRange.end + 1) {
+      merged.push({ ...range })
+      return
+    }
+    lastRange.end = Math.max(lastRange.end, range.end)
+  })
+
+  return merged
+}
+
+const isPageInRanges = (pageNumber: number, ranges: PageRange[]) => {
+  for (const range of ranges) {
+    if (pageNumber < range.start) return false
+    if (pageNumber <= range.end) return true
+  }
+  return false
+}
+
 export default function PdfViewer({
   url,
   title,
@@ -52,7 +104,7 @@ export default function PdfViewer({
   const [pdfText, setPdfText] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioReady, setAudioReady] = useState<boolean>(false)
-  const [renderedPages, setRenderedPages] = useState(0)
+  const [renderedRanges, setRenderedRanges] = useState<PageRange[]>([])
   const { zoom, appliedZoom, minZoom, maxZoom, zoomStep, handleZoomChange } =
     useZoom()
 
@@ -60,6 +112,14 @@ export default function PdfViewer({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const { chatHightlight, chatWindow } = useChat()
+  const initialPageAnchors = useMemo(
+    () => normalizeInitialPages(numPages),
+    [numPages]
+  )
+  const initialPageSet = useMemo(
+    () => new Set(initialPageAnchors),
+    [initialPageAnchors]
+  )
 
   useEffect(() => {
     if (!pdfContainerRef.current) return
@@ -114,29 +174,21 @@ export default function PdfViewer({
   }, [numPages])
 
   useEffect(() => {
-    if (!numPages || numPages <= 0) {
-      setRenderedPages(0)
-      return
-    }
+    if (!numPages || numPages <= 0) return
+    if (!Number.isFinite(currentPage) || currentPage <= 0) return
 
-    setRenderedPages(Math.min(10, numPages))
+    const nextAnchor = initialPageAnchors.find(page => page > currentPage)
+    const rangeEnd = nextAnchor ? Math.min(nextAnchor - 1, numPages) : numPages
 
-    const intervalId = window.setInterval(() => {
-      setRenderedPages(prev => {
-        if (prev >= numPages) {
-          window.clearInterval(intervalId)
-          return prev
-        }
-        const next = Math.min(prev + 10, numPages)
-        if (next >= numPages) {
-          window.clearInterval(intervalId)
-        }
-        return next
-      })
-    }, 1000)
+    if (rangeEnd < currentPage) return
 
-    return () => window.clearInterval(intervalId)
-  }, [numPages, url])
+    const nextRange = { start: currentPage, end: rangeEnd }
+
+    setRenderedRanges(prev => {
+      if (isRangeCovered(prev, nextRange)) return prev
+      return mergeRanges(prev, nextRange)
+    })
+  }, [currentPage, initialPageAnchors, numPages])
 
   const handleAiInsights = () => {
     if (typeof window === "undefined") return
@@ -314,19 +366,24 @@ export default function PdfViewer({
                 >
                   <div className="flex w-full flex-col items-center gap-6">
                     {numPages &&
-                      Array.from(
-                        { length: Math.min(renderedPages, numPages) },
-                        (_, index) => (
+                      Array.from({ length: numPages }, (_, index) => {
+                        const pageNumber = index + 1
+                        const shouldRender =
+                          initialPageSet.has(pageNumber) ||
+                          isPageInRanges(pageNumber, renderedRanges)
+
+                        if (!shouldRender) return null
+                        return (
                           <PdfPage
-                            key={`page-${index + 1}`}
-                            pageNumber={index + 1}
+                            key={`page-${pageNumber}`}
+                            pageNumber={pageNumber}
                             height={pageHeight}
                             registerPageRef={node => {
                               pageRefs.current[index] = node
                             }}
                           />
                         )
-                      )}
+                      })}
                   </div>
                 </Document>
               </div>
