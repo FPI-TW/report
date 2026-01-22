@@ -24,6 +24,13 @@ import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
 import useZoom from "./hooks/useZoom"
 import { AudioApi } from "@/lib/api"
+import {
+  type PageRange,
+  isPageInRanges,
+  isRangeCovered,
+  mergeRanges,
+  normalizeInitialPages,
+} from "./lib/page-rendering"
 
 type Props = {
   url: string
@@ -36,56 +43,6 @@ type Props = {
 }
 
 const initialPages = [0, 1, 2, 3, 4, 5, 18, 28, 36, 59, 68, 73, 90]
-
-type PageRange = {
-  start: number
-  end: number
-}
-
-const normalizeInitialPages = (pageCount: number | null) => {
-  if (!pageCount) return []
-  const pageSet = new Set<number>()
-  initialPages.forEach(page => {
-    if (page >= 1 && page <= pageCount) {
-      pageSet.add(page)
-    }
-  })
-  return Array.from(pageSet).sort((a, b) => a - b)
-}
-
-const isRangeCovered = (ranges: PageRange[], nextRange: PageRange) => {
-  for (const range of ranges) {
-    if (nextRange.start < range.start) return false
-    if (range.start <= nextRange.start && range.end >= nextRange.end) {
-      return true
-    }
-  }
-  return false
-}
-
-const mergeRanges = (ranges: PageRange[], nextRange: PageRange) => {
-  const ordered = [...ranges, nextRange].sort((a, b) => a.start - b.start)
-  const merged: PageRange[] = []
-
-  ordered.forEach(range => {
-    const lastRange = merged[merged.length - 1]
-    if (!lastRange || range.start > lastRange.end + 1) {
-      merged.push({ ...range })
-      return
-    }
-    lastRange.end = Math.max(lastRange.end, range.end)
-  })
-
-  return merged
-}
-
-const isPageInRanges = (pageNumber: number, ranges: PageRange[]) => {
-  for (const range of ranges) {
-    if (pageNumber < range.start) return false
-    if (pageNumber <= range.end) return true
-  }
-  return false
-}
 
 export default function PdfViewer({
   url,
@@ -113,7 +70,7 @@ export default function PdfViewer({
 
   const { chatHightlight, chatWindow } = useChat()
   const initialPageAnchors = useMemo(
-    () => normalizeInitialPages(numPages),
+    () => normalizeInitialPages(initialPages, numPages),
     [numPages]
   )
   const initialPageSet = useMemo(
