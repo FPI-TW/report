@@ -30,7 +30,7 @@ export default function Tabs({ value, onChange }: TabsProps) {
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={`min-w-32 rounded-full border px-4 py-1 text-base font-medium transition-colors sm:text-lg ${
+            className={`min-w-28 rounded-full border px-4 py-1 text-base font-medium transition-colors sm:text-lg ${
               active
                 ? "border-amber-500 bg-amber-500 text-white shadow-sm"
                 : "border-black/10 text-gray-800 hover:bg-black/5"

@@ -82,7 +82,7 @@ export default function DashboardPage() {
   return (
     <div className="relative mx-auto flex h-screen max-w-7xl flex-col">
       {/* Scrollable content area */}
-      <div className="relative grow overflow-y-auto p-8">
+      <div className="relative grow overflow-y-auto p-4 sm:p-6 lg:p-8">
         <WarningAlert />
 
         {/* Preferences */}
@@ -102,7 +102,7 @@ export default function DashboardPage() {
         />
 
         {/* Top tabs above title */}
-        <div className="relative mb-6 flex items-center justify-between">
+        <div className="relative mb-4 flex flex-wrap items-center justify-between gap-y-4 sm:mb-6">
           <Tabs
             value={type}
             onChange={v => {
@@ -123,7 +123,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="relative mb-6 space-y-4">
-          <h1 className="text-3xl font-semibold" style={{ color: BRAND }}>
+          <h1
+            className="text-2xl font-semibold sm:text-3xl"
+            style={{ color: BRAND }}
+          >
             {t(titleKeyMap[type])}
           </h1>
           <p className="text-md whitespace-pre-line text-gray-700">
@@ -185,7 +188,7 @@ export default function DashboardPage() {
                 <div
                   className={cn(
                     "grid gap-x-4 gap-y-6",
-                    "grid-cols-3 sm:grid-cols-5 lg:grid-cols-7"
+                    "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7"
                   )}
                 >
                   {group.items.map(item => {
@@ -209,7 +212,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Footer (always visible) */}
-      <footer className="sticky bottom-0 z-10 w-full border-t bg-white/80 px-8 py-3 backdrop-blur supports-backdrop-filter:bg-white/60">
+      <footer className="sticky bottom-0 z-10 w-full border-t bg-white/80 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-white/60 sm:px-8">
         {data && (
           <div className="flex items-center justify-between">
             <button

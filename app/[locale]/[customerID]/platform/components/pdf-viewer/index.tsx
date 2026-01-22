@@ -239,7 +239,7 @@ export default function PdfViewer({
 
   return (
     <>
-      <header className="flex items-center justify-between gap-2 border-b px-4 py-3">
+      <header className="flex items-center justify-between gap-2 border-b px-4 py-3 sm:gap-4">
         {/* Fixed Chat */}
         <Chat
           reportType={reportType}
@@ -254,7 +254,7 @@ export default function PdfViewer({
         />
 
         {/* Main Content */}
-        <div className="flex w-120 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <h2 className="truncate text-sm font-medium sm:text-base">{title}</h2>
           <div className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] sm:text-xs">
             <span>{reportDate}</span>
@@ -263,7 +263,7 @@ export default function PdfViewer({
           </div>
         </div>
 
-        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        <div className="text-muted-foreground hidden items-center gap-2 text-xs sm:flex">
           {numPages ? (
             <span>
               Page {currentPage} / {numPages}
@@ -271,25 +271,25 @@ export default function PdfViewer({
           ) : null}
         </div>
 
-        <div className="flex w-120 items-center justify-end gap-4 text-xs">
+        <div className="flex items-center justify-end gap-2 text-xs sm:gap-4">
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon"
-              className="size-6 rounded"
+              className="size-7 rounded sm:size-8"
               onClick={() => handleZoomChange(-zoomStep)}
               disabled={zoom <= minZoom}
               aria-label="Zoom out"
             >
               -
             </Button>
-            <p className="text-muted-foreground px-2 text-center text-sm font-semibold">
+            <p className="text-muted-foreground hidden px-2 text-center text-sm font-semibold sm:block">
               {Math.round(zoom * 100)}%
             </p>
             <Button
               variant="outline"
               size="icon"
-              className="size-6 rounded"
+              className="size-7 rounded sm:size-8"
               onClick={() => handleZoomChange(zoomStep)}
               disabled={zoom >= maxZoom}
               aria-label="Zoom in"
@@ -304,7 +304,7 @@ export default function PdfViewer({
               chatWindow.close()
               chatHightlight.clear()
             }}
-            className="h-7 rounded px-2"
+            className="h-8 rounded px-3 sm:h-9"
           >
             {t("close")}
           </Button>
