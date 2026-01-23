@@ -5,7 +5,7 @@ import "react-pdf/dist/Page/TextLayer.css"
 
 import type React from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Document, Page } from "react-pdf"
+import { Document, Page, type PageProps } from "react-pdf"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useTranslations } from "next-intl"
@@ -42,6 +42,8 @@ type Props = {
   onClose: () => void
 }
 
+type PageLoadSuccess = NonNullable<PageProps["onLoadSuccess"]>
+
 const initialPages = [0, 1, 2, 3, 4, 5, 18, 28, 36, 59, 68, 73, 90]
 
 export default function PdfViewer({
@@ -58,6 +60,8 @@ export default function PdfViewer({
   const [numPages, setNumPages] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [pdfHeight, setPdfHeight] = useState(0)
+  const [pdfWidth, setPdfWidth] = useState(0)
+  const [pageRatio, setPageRatio] = useState<number | null>(null)
   const [pdfText, setPdfText] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioReady, setAudioReady] = useState<boolean>(false)
@@ -82,13 +86,14 @@ export default function PdfViewer({
     if (!pdfContainerRef.current) return
     const container = pdfContainerRef.current
 
-    const updateHeight = () => {
+    function updateSize() {
       setPdfHeight(container.clientHeight * 0.95)
+      setPdfWidth(container.clientWidth)
     }
 
-    updateHeight()
+    updateSize()
 
-    const resizeObserver = new ResizeObserver(updateHeight)
+    const resizeObserver = new ResizeObserver(updateSize)
     resizeObserver.observe(container)
 
     return () => resizeObserver.disconnect()
@@ -122,7 +127,7 @@ export default function PdfViewer({
     })
 
     return () => observer.disconnect()
-  }, [numPages, pdfHeight])
+  }, [numPages, pdfHeight, pdfWidth])
 
   useEffect(() => {
     if (numPages && numPages > 0) {
@@ -189,6 +194,7 @@ export default function PdfViewer({
     numPages: number
   }) {
     setNumPages(loadedNumPages ?? 0)
+    setPageRatio(null)
     if (!loadedNumPages || loadedNumPages <= 0) {
       setPdfText("")
       return
@@ -196,6 +202,13 @@ export default function PdfViewer({
 
     const text = await parsePdfTextFromUrl(url)
     setPdfText(text)
+  }
+
+  const handlePageLoadSuccess: PageLoadSuccess = page => {
+    if (pageRatio) return
+    const viewport = page.getViewport({ scale: 1 })
+    if (viewport.width <= 0 || viewport.height <= 0) return
+    setPageRatio(viewport.height / viewport.width)
   }
 
   useEffect(() => {
@@ -236,6 +249,16 @@ export default function PdfViewer({
   }, [fileName, reportDate, reportType])
 
   const pageHeight = pdfHeight > 0 ? pdfHeight * appliedZoom : 0
+  const pageWidth = pdfWidth > 0 ? pdfWidth * appliedZoom : 0
+  const isMobile = pdfWidth > 0 && pdfWidth < 640
+  const isReady = isMobile ? pageWidth > 0 : pageHeight > 0
+  const pageMinHeight = useMemo(() => {
+    if (isMobile) {
+      return pageRatio ? pageWidth * pageRatio : 300
+    }
+
+    return pageHeight
+  }, [isMobile, pageHeight, pageWidth, pageRatio])
 
   return (
     <>
@@ -312,10 +335,10 @@ export default function PdfViewer({
       </header>
 
       <div ref={pdfContainerRef} className="bg-muted/40 flex-1 overflow-auto">
-        <PDFSuspense url={url} height={pageHeight}>
+        <PDFSuspense url={url} isReady={isReady}>
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div className="flex w-full justify-center px-4 py-4">
+              <div className="flex w-full justify-center px-0 py-4 sm:px-4">
                 <Document
                   file={url}
                   error={<div className="text-destructive">{errorLabel}</div>}
@@ -330,14 +353,20 @@ export default function PdfViewer({
                           isPageInRanges(pageNumber, renderedRanges)
 
                         if (!shouldRender) return null
+                        const pageSizeProps = isMobile
+                          ? { width: pageWidth }
+                          : { height: pageHeight }
+
                         return (
                           <PdfPage
                             key={`page-${pageNumber}`}
                             pageNumber={pageNumber}
-                            height={pageHeight}
+                            minHeight={pageMinHeight}
+                            onLoadSuccess={handlePageLoadSuccess}
                             registerPageRef={node => {
                               pageRefs.current[index] = node
                             }}
+                            {...pageSizeProps}
                           />
                         )
                       })}
@@ -367,12 +396,37 @@ export default function PdfViewer({
 function PdfPage({
   pageNumber,
   height,
+  width,
+  minHeight,
+  onLoadSuccess = () => {},
   registerPageRef,
 }: {
   pageNumber: number
-  height: number
+  height?: number
+  width?: number
+  minHeight?: number
+  onLoadSuccess?: PageLoadSuccess
   registerPageRef?: (node: HTMLDivElement | null) => void
 }) {
+  const pageSizeProps = useMemo(() => {
+    const isWidthValid = typeof width === "number" && width > 0
+    const isHeightValid = typeof height === "number" && height > 0
+
+    if (isWidthValid && isHeightValid) {
+      return {
+        width,
+        height,
+      }
+    }
+
+    if (isWidthValid) {
+      return { width }
+    }
+    if (isHeightValid) {
+      return { height }
+    }
+  }, [width, height])
+
   return (
     <div
       ref={node => {
@@ -380,14 +434,15 @@ function PdfPage({
       }}
       data-page-number={pageNumber}
       className="flex w-full justify-center"
-      style={{ minHeight: height }}
+      style={{ minHeight }}
     >
       <div className="relative inline-block">
         <Page
           pageNumber={pageNumber}
-          height={height}
           renderTextLayer
           renderAnnotationLayer
+          onLoadSuccess={onLoadSuccess}
+          {...pageSizeProps}
         />
       </div>
     </div>
@@ -396,11 +451,11 @@ function PdfPage({
 
 function PDFSuspense({
   url,
-  height,
+  isReady,
   children,
 }: {
   url: string
-  height: number
+  isReady: boolean
   children: React.ReactNode
 }) {
   const t = useTranslations("pdf_viewer")
@@ -413,7 +468,7 @@ function PDFSuspense({
     )
   }
 
-  if (height <= 0) {
+  if (!isReady) {
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
         {t("loading_pdf")}
