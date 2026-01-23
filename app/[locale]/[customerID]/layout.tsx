@@ -7,7 +7,7 @@ export default async function Layout({
 }) {
   return (
     <div className="relative">
-      <Toaster richColors closeButton />
+      <Toaster richColors closeButton position="top-right" />
       {children}
     </div>
   )
