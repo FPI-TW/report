@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useDragControls } from "motion/react"
 import { useTranslations } from "next-intl"
-import type { ReportType } from "../lib/query-report-by-type"
+import type { ReportType } from "@/types/reports"
 import { Headphones } from "lucide-react"
 
 type Props = {

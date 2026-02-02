@@ -1,5 +1,4 @@
-import type { ReportType } from "@/app/[locale]/[customerID]/platform/lib/query-report-by-type"
-
+import type { ReportType } from "@/types/reports"
 export type ApiReport = { key: string; date: string; url: string }
 export type ApiGroup = { year: number; month: number; items: ApiReport[] }
 

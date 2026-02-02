@@ -1,8 +1,4 @@
-export type ReportType =
-  | "daily-report"
-  | "weekly-report"
-  | "research-report"
-  | "ai-news"
+import type { ReportType } from "@/types/reports"
 
 export async function queryReportByType(
   type: ReportType,
