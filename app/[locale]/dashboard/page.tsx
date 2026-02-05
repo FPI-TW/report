@@ -9,7 +9,10 @@ import { AuthApi } from "@/lib/api"
 import { useAuthStore } from "@/store/auth"
 
 const schema = z.object({
-  account: z.string().min(1, "Required"),
+  account: z
+    .string()
+    .min(1, "Required")
+    .refine(value => value === "admin", "Admin only"),
   password: z.string().min(1, "Required"),
 })
 
