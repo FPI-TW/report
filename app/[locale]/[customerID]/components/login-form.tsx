@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { useLocale, useTranslations } from "next-intl"
 import { AuthApi } from "@/lib/api"
+import { useAuthStore } from "@/store/auth"
 
 type LoginValues = {
   account: string
@@ -36,6 +37,7 @@ export default function LoginForm({ customerID }: LoginFormProps) {
   })
 
   const router = useRouter()
+  const setToken = useAuthStore(state => state.setToken)
   const [serverError, setServerError] = useState<string | null>(null)
 
   const onSubmit = async (values: LoginValues) => {
@@ -52,18 +54,18 @@ export default function LoginForm({ customerID }: LoginFormProps) {
       return
     }
 
-    const { response } = await AuthApi.login({
-      customerID,
-      account: values.account,
+    const { response, data } = await AuthApi.login({
+      username: values.account,
       password: values.password,
     })
-    if (!response.ok) {
+    if (!response.ok || !("access_token" in data)) {
       const msg = t("invalid_credentials")
       setServerError(msg)
       toast.error(msg)
       return
     }
 
+    setToken(data.access_token)
     toast.success(t("logged_in_success"))
     router.push(`/${locale}/${customerID}/platform`)
   }
