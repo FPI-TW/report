@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig, type Method } from "axios"
 
-const API_BASE_URL = "https://api.tingfong.com/api" as const
+const API_BASE_URL = "https://api.tingfong.com" as const
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
