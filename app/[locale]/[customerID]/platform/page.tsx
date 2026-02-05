@@ -3,13 +3,14 @@
 import dynamic from "next/dynamic"
 import { useTranslations } from "next-intl"
 import { useQuery } from "@tanstack/react-query"
-import { useSearchParams } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { queryReportByType } from "./lib/query-report-by-type"
 import { ReportType } from "@/types/reports"
 import { cn } from "@/lib/utils"
 import useDialog from "@/hooks/useDialog"
 import { updateParams } from "@/lib/updateParams"
+import { useAuthStore } from "@/store/auth"
 
 import Tabs from "./components/tabs"
 import SettingsDialog from "./components/settings-dialog"
@@ -46,10 +47,16 @@ function monthLabel(m: number) {
 ensurePdfWorker()
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const params = useParams() as { locale?: string; customerID?: string }
+  const locale = params?.locale ?? ""
+  const customerID = params?.customerID ?? ""
   const search = useSearchParams()
   const defaultReportType =
     (search.get("reportType") as ReportType | null) || "daily-report"
 
+  const token = useAuthStore(state => state.token)
+  const isAuthed = Boolean(token)
   const [page, setPage] = useState(1)
   const [type, setType] = useState<ReportType>(defaultReportType)
   const t = useTranslations("dashboard")
@@ -72,6 +79,7 @@ export default function DashboardPage() {
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ["reports", type, page, months],
     queryFn: () => queryReportByType(type, page, months),
+    enabled: isAuthed,
   })
 
   useEffect(() => {
@@ -79,6 +87,16 @@ export default function DashboardPage() {
     const type = params.get("reportType")
     if (!type) updateParams({ reportType: "daily-report" })
   }, [])
+
+  useEffect(() => {
+    if (!isAuthed && locale && customerID) {
+      router.replace(`/${locale}/${customerID}`)
+    }
+  }, [customerID, isAuthed, locale, router])
+
+  if (!isAuthed) {
+    return null
+  }
 
   return (
     <div className="relative mx-auto flex h-screen max-w-7xl flex-col">
