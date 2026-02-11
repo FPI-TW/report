@@ -152,8 +152,8 @@ export default function DashboardPage() {
           >
             <div className="flex items-start gap-3">
               <Megaphone className="mt-0.5 size-4" aria-hidden />
-              <div className="w-full space-y-1">
-                <p className="text-sm font-semibold">
+              <div className="w-full space-y-2">
+                <p className="text-base font-semibold">
                   {t("announcement_label")}
                 </p>
                 <p className="text-sm leading-6 whitespace-pre-line">
