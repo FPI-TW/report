@@ -1,16 +1,13 @@
-export type ReportType =
-  | "daily-report"
-  | "weekly-report"
-  | "research-report"
-  | "ai-news"
+import type { ReportType } from "@/types/reports"
+import { apiFetch, withAuthHeaders } from "@/lib/api/axios"
 
 export async function queryReportByType(
   type: ReportType,
   page: number,
   months: number
 ) {
-  const res = await fetch(`/api/${type}?page=${page}&months=${months}`, {
-    cache: "no-store",
+  const res = await apiFetch(`/${type}?page=${page}&months=${months}`, {
+    headers: withAuthHeaders(),
   })
   if (!res.ok) throw new Error("failed")
   return res.json()

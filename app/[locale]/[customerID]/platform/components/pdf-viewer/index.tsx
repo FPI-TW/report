@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/context-menu"
 import AudioFeatureBar from "../audio-feature-bar"
 import Chat from "../chat"
-import type { ReportType } from "../../lib/query-report-by-type"
+import type { ReportType } from "@/types/reports"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
 import useZoom from "./hooks/useZoom"
@@ -225,9 +225,8 @@ export default function PdfViewer({
       setAudioReady(false)
       return
     }
-    console.log(baseName)
-    const key = `${reportType}/audio/${baseName}.mp3`
 
+    const key = `${reportType}/audio/${baseName}.mp3`
     let cancelled = false
     const fetchAudio = async () => {
       const { response, data } = await AudioApi.fetchAudioUrl(key)

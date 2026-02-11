@@ -1,18 +1,28 @@
-import { requireSuperUser } from "@/lib/admin"
-import { redirect } from "next/navigation"
+"use client"
+
+import { useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import UploadPage from "./page"
+import { useAuthStore } from "@/store/auth"
 
-export default async function DashboardGate({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
-  const { locale } = await params
-  const claims = await requireSuperUser()
+export default function Layout() {
+  const isAuthed = useDashboardGate()
 
-  if (!claims) {
-    redirect(`/${locale}/dashboard`)
-  }
+  return isAuthed ? <UploadPage /> : null
+}
 
-  return <UploadPage />
+function useDashboardGate() {
+  const router = useRouter()
+  const params = useParams() as { locale?: string }
+  const locale = params?.locale ?? ""
+  const token = useAuthStore(state => state.token)
+  const isAuthed = Boolean(token)
+
+  useEffect(() => {
+    if (!isAuthed && locale) {
+      router.replace(`/${locale}/dashboard`)
+    }
+  }, [isAuthed, locale, router])
+
+  return isAuthed
 }

@@ -1,11 +1,14 @@
+import { apiFetch } from "./axios"
+
 export type LoginRequest = {
-  customerID: string
-  account: string
+  username: string
   password: string
 }
 
 export type LoginSuccessResponse = {
-  ok: true
+  access_token: string
+  expires_in: number
+  token_type: "bearer"
 }
 
 export type LoginErrorResponse = {
@@ -19,7 +22,7 @@ export type LoginResponse = LoginSuccessResponse | LoginErrorResponse
 export async function login(
   body: LoginRequest
 ): Promise<{ response: Response; data: LoginResponse }> {
-  const response = await fetch("/api/auth/login", {
+  const response = await apiFetch("/login", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),

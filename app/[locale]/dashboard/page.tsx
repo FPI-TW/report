@@ -6,9 +6,13 @@ import { useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { AuthApi } from "@/lib/api"
+import { useAuthStore } from "@/store/auth"
 
 const schema = z.object({
-  account: z.string().min(1, "Required"),
+  account: z
+    .string()
+    .min(1, "Required")
+    .refine(value => value === "admin", "Admin only"),
   password: z.string().min(1, "Required"),
 })
 
@@ -21,6 +25,7 @@ export default function DashboardLoginPage() {
     mode: "onSubmit",
   })
   const [error, setError] = useState<string | null>(null)
+  const setToken = useAuthStore(state => state.setToken)
   const router = useRouter()
   const params = useParams() as { locale?: string }
   const locale = params?.locale || ""
@@ -30,16 +35,16 @@ export default function DashboardLoginPage() {
     const parsed = schema.safeParse(formValues)
     if (!parsed.success) return
     const { response, data } = await AuthApi.login({
-      customerID: "tingfong",
-      account: parsed.data.account,
+      username: parsed.data.account,
       password: parsed.data.password,
     })
-    if (!response.ok || !data?.ok) {
+    if (!response.ok || !("access_token" in data)) {
       const message =
-        !data.ok && "error" in data && data.error ? data.error : "Login failed"
+        "error" in data && data.error ? data.error : "Login failed"
       setError(message)
       return
     }
+    setToken(data.access_token)
     router.replace(`/${locale}/dashboard/home`)
   }
 
