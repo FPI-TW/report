@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig, type Method } from "axios"
+import { useAuthStore } from "@/store/auth"
 
-const API_BASE_URL = "https://api.tingfong.com" as const
+const API_BASE_URL = "https://api.tingfong.com/api" as const
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -44,6 +45,15 @@ const toAxiosHeaders = (headers: Headers): Record<string, string> => {
     result[key] = value
   })
   return result
+}
+
+export const withAuthHeaders = (headers?: HeadersInit): Headers => {
+  const merged = new Headers(headers)
+  const token = useAuthStore.getState().token
+  if (token && !merged.has("authorization")) {
+    merged.set("authorization", `Bearer ${token}`)
+  }
+  return merged
 }
 
 const toResponseHeaders = (headers: unknown): Headers => {
@@ -152,6 +162,8 @@ export const apiFetch = async (
     input,
     init
   )
+
+  console.log(url)
 
   const axiosConfig: AxiosRequestConfig<BodyInit | null | undefined> = {
     url,
