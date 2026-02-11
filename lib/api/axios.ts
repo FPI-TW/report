@@ -163,8 +163,6 @@ export const apiFetch = async (
     init
   )
 
-  console.log(url)
-
   const axiosConfig: AxiosRequestConfig<BodyInit | null | undefined> = {
     url,
     method,
