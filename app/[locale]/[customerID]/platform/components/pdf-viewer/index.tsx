@@ -225,9 +225,8 @@ export default function PdfViewer({
       setAudioReady(false)
       return
     }
-    console.log(baseName)
-    const key = `${reportType}/audio/${baseName}.mp3`
 
+    const key = `${reportType}/audio/${baseName}.mp3`
     let cancelled = false
     const fetchAudio = async () => {
       const { response, data } = await AudioApi.fetchAudioUrl(key)
