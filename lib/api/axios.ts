@@ -1,10 +1,55 @@
-import axios, { type AxiosRequestConfig, type Method } from "axios"
+import axios, {
+  AxiosHeaders,
+  type AxiosRequestConfig,
+  type Method,
+} from "axios"
 import { useAuthStore } from "@/store/auth"
 
-const API_BASE_URL = "https://api.tingfong.com/api" as const
+const API_BASE_URL = "http://13.250.99.207:8088/api" as const
+// const API_BASE_URL = "https://api.tingfong.com/api" as const
+const LOCALE_COOKIE_KEY = "NEXT_LOCALE" as const
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+})
+
+const getCookieValue = (cookieKey: string): string | undefined => {
+  if (typeof document === "undefined") {
+    return undefined
+  }
+
+  const cookies = document.cookie ? document.cookie.split("; ") : []
+  for (const cookie of cookies) {
+    const separatorIndex = cookie.indexOf("=")
+    if (separatorIndex < 0) {
+      continue
+    }
+
+    const key = decodeURIComponent(cookie.slice(0, separatorIndex))
+    if (key !== cookieKey) {
+      continue
+    }
+
+    return decodeURIComponent(cookie.slice(separatorIndex + 1))
+  }
+
+  return undefined
+}
+
+const getCurrentLocale = (): string | undefined => {
+  return getCookieValue(LOCALE_COOKIE_KEY)
+}
+
+apiClient.interceptors.request.use(config => {
+  const locale = getCurrentLocale()
+  if (!locale) {
+    return config
+  }
+
+  const headers = AxiosHeaders.from(config.headers)
+  headers.set("locale", locale)
+  config.headers = headers
+  return config
 })
 
 const normalizeMethod = (method: string | undefined): Method => {
@@ -50,9 +95,14 @@ const toAxiosHeaders = (headers: Headers): Record<string, string> => {
 export const withAuthHeaders = (headers?: HeadersInit): Headers => {
   const merged = new Headers(headers)
   const token = useAuthStore.getState().token
+  const locale = getCurrentLocale() || "zh-hant"
+
   if (token && !merged.has("authorization")) {
     merged.set("authorization", `Bearer ${token}`)
   }
+
+  merged.set("locale", locale)
+
   return merged
 }
 

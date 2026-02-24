@@ -48,11 +48,7 @@ export async function POST(req: NextRequest) {
   const reportType = body?.reportType || "daily report"
   const reportDate = body?.reportDate || new Date().toISOString().split("T")[0]
   const rawPdfText = body?.pdfText || ""
-  const MAX_PDF_TEXT_LENGTH = 8000
-  const pdfText =
-    typeof rawPdfText === "string"
-      ? rawPdfText.slice(0, MAX_PDF_TEXT_LENGTH)
-      : ""
+  const pdfText = typeof rawPdfText === "string" ? rawPdfText : ""
 
   const system_prompt =
     BASIC_PROMPT +

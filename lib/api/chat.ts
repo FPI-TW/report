@@ -1,3 +1,5 @@
+import { apiClient, withAuthHeaders } from "./axios"
+
 export type ChatMessageRole = "user" | "assistant" | "system"
 
 export type ChatMessagePayload = {
@@ -5,44 +7,126 @@ export type ChatMessagePayload = {
   content: string
 }
 
-export type ChatRequestBody = {
+export type CreateChatParams = {
   reportType?: string
   reportDate?: string
+  pdfText: string
   messages: ChatMessagePayload[]
+  signal?: AbortSignal
+  onDelta?: (chunk: string) => void
 }
 
-export type ChatResponse = string
+export type CreateChatResult = {
+  fullText: string
+  receivedAnyChunk: boolean
+}
 
-// export type ChatResponse = {
-//   session_id: string
-//   metaData: {
-//     reportType: string
-//     reportDate: string
-//     language: string
-//   }
-//   response: {
-//     role: string
-//     content: string
-//   }
-// }
+const CHAT_AUTH_REQUIRED_ERROR = "CHAT_AUTH_REQUIRED" as const
 
-export async function createChatStream(
-  body: ChatRequestBody,
-  signal?: AbortSignal | null
-): Promise<ChatResponse> {
-  const response = await fetch("/api/chat/deepseek", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    signal: signal ?? null,
-    body: JSON.stringify(body),
+const toHeaderObject = (headers: Headers): Record<string, string> => {
+  const result: Record<string, string> = {}
+  headers.forEach((value, key) => {
+    result[key] = value
   })
+  return result
+}
+
+export const isChatAuthRequiredError = (error: unknown): boolean => {
+  return error instanceof Error && error.message === CHAT_AUTH_REQUIRED_ERROR
+}
+
+export async function createChat({
+  reportType,
+  reportDate,
+  pdfText,
+  messages,
+  signal,
+  onDelta,
+}: CreateChatParams): Promise<CreateChatResult> {
+  const headers = withAuthHeaders({
+    "content-type": "application/json",
+  })
+
+  if (!headers.has("authorization")) {
+    throw new Error(CHAT_AUTH_REQUIRED_ERROR)
+  }
+
+  let receivedAnyChunk = false
+  let streamedText = ""
+
+  const payload: {
+    reportType?: string
+    reportDate?: string
+    pdfText: string
+    messages: ChatMessagePayload[]
+  } = {
+    pdfText: typeof pdfText === "string" ? pdfText : "",
+    messages,
+  }
+
+  if (reportType !== undefined) {
+    payload.reportType = reportType
+  }
+  if (reportDate !== undefined) {
+    payload.reportDate = reportDate
+  }
+
+  const baseURL = apiClient.defaults.baseURL
+  if (!baseURL) {
+    throw new Error("CHAT_API_BASE_URL_MISSING")
+  }
+
+  const requestInit: RequestInit = {
+    method: "POST",
+    headers: toHeaderObject(headers),
+    body: JSON.stringify(payload),
+  }
+  if (signal) {
+    requestInit.signal = signal
+  }
+
+  const response = await fetch(
+    `${baseURL.replace(/\/+$/, "")}/chat`,
+    requestInit
+  )
 
   if (!response.ok) {
     throw new Error("Request failed")
   }
 
-  const text = await response.text()
-  return text
+  if (response.body) {
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    for (;;) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value, { stream: true })
+      if (!chunk) continue
+
+      streamedText += chunk
+      receivedAnyChunk = true
+      onDelta?.(chunk)
+    }
+
+    const tail = decoder.decode()
+    if (tail) {
+      streamedText += tail
+      receivedAnyChunk = true
+      onDelta?.(tail)
+    }
+  } else {
+    const fullText = await response.text()
+    if (fullText) {
+      streamedText = fullText
+      receivedAnyChunk = true
+      onDelta?.(fullText)
+    }
+  }
+
+  return {
+    fullText: streamedText,
+    receivedAnyChunk,
+  }
 }
