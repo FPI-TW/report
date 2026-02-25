@@ -1,5 +1,5 @@
-import type { ReportType } from "@/app/[locale]/[customerID]/platform/lib/query-report-by-type"
-
+import type { ReportType } from "@/types/reports"
+import { apiFetch, withAuthHeaders } from "./axios"
 export type ApiReport = { key: string; date: string; url: string }
 export type ApiGroup = { year: number; month: number; items: ApiReport[] }
 
@@ -24,8 +24,8 @@ export async function fetchReportsByType(
   response: Response
   data: ReportsListResponse | ReportsListError
 }> {
-  const response = await fetch(`/api/${type}?page=${page}&months=${months}`, {
-    cache: "no-store",
+  const response = await apiFetch(`/${type}?page=${page}&months=${months}`, {
+    headers: withAuthHeaders(),
   })
 
   const data = (await response.json().catch(() => ({}))) as
@@ -49,12 +49,9 @@ export type ReportUrlResponse =
 export async function fetchReportUrl(
   key: string
 ): Promise<{ response: Response; data: ReportUrlResponse }> {
-  const response = await fetch(
-    `/api/reports/url?key=${encodeURIComponent(key)}`,
-    {
-      cache: "no-store",
-    }
-  )
+  const response = await apiFetch(`/pdf/url?key=${encodeURIComponent(key)}`, {
+    headers: withAuthHeaders(),
+  })
 
   const data = (await response.json().catch(() => ({}))) as ReportUrlResponse
 
@@ -68,9 +65,9 @@ export type DeleteReportResponse =
 export async function deleteReport(
   key: string
 ): Promise<{ response: Response; data: DeleteReportResponse }> {
-  const response = await fetch("/api/reports/delete", {
+  const response = await apiFetch("/reports/delete", {
     method: "DELETE",
-    headers: { "content-type": "application/json" },
+    headers: withAuthHeaders({ "content-type": "application/json" }),
     body: JSON.stringify({ key }),
   })
 

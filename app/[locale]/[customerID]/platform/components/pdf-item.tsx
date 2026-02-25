@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "motion/react"
 import useDialog from "@/hooks/useDialog"
 import PdfViewer from "./pdf-viewer"
-import type { ReportType } from "../lib/query-report-by-type"
+import type { ReportType } from "@/types/reports"
 import { ReportsApi } from "@/lib/api"
 
 export type PdfSource = { key: string; date: string; url: string }

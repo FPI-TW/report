@@ -1,4 +1,5 @@
 import type { ReportType } from "@/types/reports"
+import { apiFetch, withAuthHeaders } from "./axios"
 
 export type UploadCategory = ReportType
 
@@ -34,11 +35,11 @@ async function requestUploadUrl(
   endpoint: string,
   body: UploadPdfRequest | UploadAudioRequest
 ): Promise<{ response: Response; data: UploadResponse }> {
-  const response = await fetch(endpoint, {
+  const response = await apiFetch(endpoint, {
     method: "POST",
-    headers: {
+    headers: withAuthHeaders({
       "content-type": "application/json",
-    },
+    }),
     body: JSON.stringify(body),
   })
 
@@ -50,11 +51,11 @@ async function requestUploadUrl(
 export function createPdfUploadUrl(
   body: UploadPdfRequest
 ): Promise<{ response: Response; data: UploadResponse }> {
-  return requestUploadUrl("/api/upload/pdf", body)
+  return requestUploadUrl("/upload/pdf", body)
 }
 
 export function createAudioUploadUrl(
   body: UploadAudioRequest
 ): Promise<{ response: Response; data: UploadResponse }> {
-  return requestUploadUrl("/api/upload/audio", body)
+  return requestUploadUrl("/upload/audio", body)
 }
