@@ -6,7 +6,7 @@ import { z } from "zod"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { UploadApi } from "@/lib/api"
-import { BRAND, REPORT_CATEGORIES, type ReportCategory } from "./constants"
+import { REPORT_CATEGORIES, type ReportCategory } from "./constants"
 
 const schema = z.object({
   category: z.enum(REPORT_CATEGORIES),
@@ -157,16 +157,49 @@ export default function UploadSection() {
 
   return (
     <>
-      <div className="relative mb-6 space-y-2">
-        <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
-          {t("title")}
-        </h1>
-        <p className="text-sm text-gray-700">{t("description")}</p>
-        <div className="mt-2" style={{ borderBottom: `2px solid ${BRAND}` }} />
+      <div className="relative mb-6 overflow-hidden rounded-xl border border-amber-200 bg-linear-to-br from-amber-50 via-white to-orange-50 p-5">
+        <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-amber-200/40 blur-2xl" />
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 3h6l4 4v14H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14 3v4h4M10 12h6M10 16h6"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <h1 className="text-2xl font-semibold text-amber-900">
+                {t("title")}
+              </h1>
+            </div>
+            <p className="text-sm text-amber-900/80">{t("description")}</p>
+            <div className="h-0.5 w-24 rounded bg-amber-300" />
+          </div>
+          <span className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs font-semibold tracking-wide text-amber-700">
+            PDF
+          </span>
+        </div>
       </div>
 
       <form
-        className="relative max-w-xl space-y-5 rounded-lg border bg-white/70 p-5 shadow-sm backdrop-blur"
+        className="relative max-w-xl space-y-5 rounded-lg border border-amber-200 bg-amber-50/30 p-5 shadow-sm backdrop-blur"
         onSubmit={handleSubmit(onSubmitRaw, () => {})}
       >
         <div className="space-y-2">
@@ -174,7 +207,7 @@ export default function UploadSection() {
             {t("category_label")}
           </label>
           <select
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="w-full rounded border border-amber-200 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
             {...register("category")}
           >
             <option value="daily-report">{tDash("daily_title")}</option>
@@ -188,8 +221,13 @@ export default function UploadSection() {
           <label className="block text-sm font-medium text-gray-800">
             {t("file_label")}
           </label>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 font-mono text-xs text-amber-700">
+              .pdf
+            </span>
+          </div>
           <div
-            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-100 px-3 py-10 text-center text-sm font-semibold text-gray-600"
+            className="cursor-pointer rounded border border-dashed border-amber-300 bg-amber-50 px-3 py-10 text-center text-sm font-semibold text-amber-700"
             onClick={() => {
               if (fileInputRef.current) {
                 fileInputRef.current.click()
@@ -230,7 +268,7 @@ export default function UploadSection() {
           <input
             type="text"
             placeholder={t("filename_placeholder")}
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="w-full rounded border border-amber-200 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
             {...register("filename")}
           />
           <p className="text-xs text-neutral-800">{t("filename_hint")}</p>
@@ -248,7 +286,7 @@ export default function UploadSection() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded bg-[#ddae58] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? t("uploading") : t("upload")}
           </button>
@@ -263,7 +301,7 @@ export default function UploadSection() {
               }
               toast(t("toast_form_reset"))
             }}
-            className="rounded border border-[#ddae58] bg-white px-4 py-2 text-sm font-medium text-[#ddae58] hover:bg-[#ddae58]/5 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded border border-amber-500 bg-white px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {t("reset_form_button")}
           </button>

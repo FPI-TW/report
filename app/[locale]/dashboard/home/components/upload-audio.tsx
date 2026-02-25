@@ -6,7 +6,7 @@ import { z } from "zod"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { UploadApi } from "@/lib/api"
-import { BRAND, REPORT_CATEGORIES, type ReportCategory } from "./constants"
+import { REPORT_CATEGORIES, type ReportCategory } from "./constants"
 
 const schema = z.object({
   category: z.enum(REPORT_CATEGORIES),
@@ -158,16 +158,48 @@ export default function UploadAudioSection() {
 
   return (
     <>
-      <div className="relative mb-6 space-y-2">
-        <h1 className="text-2xl font-semibold" style={{ color: BRAND }}>
-          {t("title")}
-        </h1>
-        <p className="text-sm text-gray-700">{t("description")}</p>
-        <div className="mt-2" style={{ borderBottom: `2px solid ${BRAND}` }} />
+      <div className="relative mb-6 overflow-hidden rounded-xl border border-sky-200 bg-linear-to-br from-sky-50 via-white to-cyan-50 p-5">
+        <div className="pointer-events-none absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-sky-200/50 blur-2xl" />
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M4 9v6M8 6v12M12 10v4M16 7v10M20 9v6"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <h1 className="text-2xl font-semibold text-sky-900">
+                {t("title")}
+              </h1>
+            </div>
+            <p className="text-sm text-sky-900/80">{t("description")}</p>
+            <div className="flex items-end gap-1">
+              <span className="h-1.5 w-1 rounded-full bg-sky-300" />
+              <span className="h-3 w-1 rounded-full bg-sky-400" />
+              <span className="h-2 w-1 rounded-full bg-cyan-400" />
+              <span className="h-4 w-1 rounded-full bg-sky-500" />
+              <span className="h-2 w-1 rounded-full bg-cyan-400" />
+            </div>
+          </div>
+          <span className="rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold tracking-wide text-sky-700">
+            AUDIO
+          </span>
+        </div>
       </div>
 
       <form
-        className="relative max-w-xl space-y-5 rounded-lg border bg-white/70 p-5 shadow-sm backdrop-blur"
+        className="relative max-w-xl space-y-5 rounded-lg border border-sky-200 bg-sky-50/30 p-5 shadow-sm backdrop-blur"
         onSubmit={handleSubmit(onSubmitRaw, () => {})}
       >
         <div className="space-y-2">
@@ -175,7 +207,7 @@ export default function UploadAudioSection() {
             {t("category_label")}
           </label>
           <select
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="w-full rounded border border-sky-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
             {...register("category")}
           >
             <option value="daily-report">{tDash("daily_title")}</option>
@@ -189,8 +221,16 @@ export default function UploadAudioSection() {
           <label className="block text-sm font-medium text-gray-800">
             {t("file_label")}
           </label>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-sky-300 bg-sky-100 px-2 py-0.5 font-mono text-xs text-sky-700">
+              .mp3
+            </span>
+            <span className="rounded-full border border-cyan-300 bg-cyan-100 px-2 py-0.5 font-mono text-xs text-cyan-700">
+              .mp4
+            </span>
+          </div>
           <div
-            className="cursor-pointer rounded border border-dashed border-gray-300 bg-gray-100 px-3 py-10 text-center text-sm font-semibold text-gray-600"
+            className="cursor-pointer rounded border border-dashed border-sky-300 bg-sky-50 px-3 py-10 text-center text-sm font-semibold text-sky-700"
             onClick={() => {
               if (fileInputRef.current) {
                 fileInputRef.current.click()
@@ -231,7 +271,7 @@ export default function UploadAudioSection() {
           <input
             type="text"
             placeholder={t("filename_placeholder")}
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="w-full rounded border border-sky-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
             {...register("filename")}
           />
           <p className="text-xs text-neutral-800">{t("filename_hint")}</p>
@@ -249,7 +289,7 @@ export default function UploadAudioSection() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded bg-[#ddae58] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? t("uploading") : t("upload")}
           </button>
@@ -264,7 +304,7 @@ export default function UploadAudioSection() {
               }
               toast(t("toast_form_reset"))
             }}
-            className="rounded border border-[#ddae58] bg-white px-4 py-2 text-sm font-medium text-[#ddae58] hover:bg-[#ddae58]/5 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded border border-sky-500 bg-white px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {t("reset_form_button")}
           </button>
