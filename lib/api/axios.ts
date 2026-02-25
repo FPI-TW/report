@@ -5,8 +5,7 @@ import axios, {
 } from "axios"
 import { useAuthStore } from "@/store/auth"
 
-const API_BASE_URL = "http://13.250.99.207:8088/api" as const
-// const API_BASE_URL = "https://api.tingfong.com/api" as const
+const API_BASE_URL = "https://api.tingfong.com/api" as const
 const LOCALE_COOKIE_KEY = "NEXT_LOCALE" as const
 
 export const apiClient = axios.create({

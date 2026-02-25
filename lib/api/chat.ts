@@ -22,6 +22,54 @@ export type CreateChatResult = {
 }
 
 const CHAT_AUTH_REQUIRED_ERROR = "CHAT_AUTH_REQUIRED" as const
+const SSE_DONE_SENTINEL = "[DONE]" as const
+
+const _decodeSseDataLine = (line: string): string => {
+  const value = line.slice(5)
+  return value.startsWith(" ") ? value.slice(1) : value
+}
+
+const _drainSseBuffer = (
+  buffer: string,
+  flush: boolean
+): { events: string[]; buffer: string } => {
+  const normalized = buffer.replace(/\r/g, "")
+  const events: string[] = []
+  let rest = normalized
+
+  const parseBlock = (block: string): string | null => {
+    if (!block.trim()) return null
+    const dataLines: string[] = []
+    for (const line of block.split("\n")) {
+      if (!line.startsWith("data:")) continue
+      dataLines.push(_decodeSseDataLine(line))
+    }
+    if (dataLines.length === 0) return null
+    return dataLines.join("\n")
+  }
+
+  while (true) {
+    const delimiterIndex = rest.indexOf("\n\n")
+    if (delimiterIndex < 0) break
+
+    const block = rest.slice(0, delimiterIndex)
+    rest = rest.slice(delimiterIndex + 2)
+    const parsed = parseBlock(block)
+    if (parsed !== null) {
+      events.push(parsed)
+    }
+  }
+
+  if (flush && rest) {
+    const parsed = parseBlock(rest)
+    if (parsed !== null) {
+      events.push(parsed)
+    }
+    rest = ""
+  }
+
+  return { events, buffer: rest }
+}
 
 const toHeaderObject = (headers: Headers): Record<string, string> => {
   const result: Record<string, string> = {}
@@ -45,6 +93,7 @@ export async function createChat({
 }: CreateChatParams): Promise<CreateChatResult> {
   const headers = withAuthHeaders({
     "content-type": "application/json",
+    accept: "text/event-stream",
   })
 
   if (!headers.has("authorization")) {
@@ -95,8 +144,12 @@ export async function createChat({
   }
 
   if (response.body) {
+    const contentType =
+      response.headers.get("content-type")?.toLowerCase() || ""
+    const isSse = contentType.includes("text/event-stream")
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
+    let sseBuffer = ""
 
     for (;;) {
       const { value, done } = await reader.read()
@@ -105,13 +158,37 @@ export async function createChat({
       const chunk = decoder.decode(value, { stream: true })
       if (!chunk) continue
 
+      if (isSse) {
+        sseBuffer += chunk
+        const drained = _drainSseBuffer(sseBuffer, false)
+        sseBuffer = drained.buffer
+        for (const eventData of drained.events) {
+          if (eventData === SSE_DONE_SENTINEL) continue
+          streamedText += eventData
+          receivedAnyChunk = true
+          onDelta?.(eventData)
+        }
+        continue
+      }
+
       streamedText += chunk
       receivedAnyChunk = true
       onDelta?.(chunk)
     }
 
     const tail = decoder.decode()
-    if (tail) {
+    if (isSse) {
+      if (tail) {
+        sseBuffer += tail
+      }
+      const drained = _drainSseBuffer(sseBuffer, true)
+      for (const eventData of drained.events) {
+        if (eventData === SSE_DONE_SENTINEL) continue
+        streamedText += eventData
+        receivedAnyChunk = true
+        onDelta?.(eventData)
+      }
+    } else if (tail) {
       streamedText += tail
       receivedAnyChunk = true
       onDelta?.(tail)

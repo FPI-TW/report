@@ -35,6 +35,8 @@ type SendChatVariables = {
   controller: AbortController
 }
 
+const STREAM_UI_FLUSH_INTERVAL_MS = 60
+
 function appendChunkToAssistantMessage(
   prev: ChatMessage[],
   assistantMessage: ChatMessage,
@@ -197,6 +199,26 @@ function ChatWindow({
     SendChatVariables
   >({
     mutationFn: async ({ history, assistantMessage, controller }) => {
+      let pendingAssistantChunk = ""
+      let flushTimer: ReturnType<typeof setTimeout> | null = null
+
+      const flushPendingAssistantChunk = () => {
+        if (!pendingAssistantChunk) return
+        const chunk = pendingAssistantChunk
+        pendingAssistantChunk = ""
+        setMessages(prev =>
+          appendChunkToAssistantMessage(prev, assistantMessage, chunk)
+        )
+      }
+
+      const scheduleAssistantChunkFlush = () => {
+        if (flushTimer) return
+        flushTimer = setTimeout(() => {
+          flushTimer = null
+          flushPendingAssistantChunk()
+        }, STREAM_UI_FLUSH_INTERVAL_MS)
+      }
+
       const chatPayload: {
         reportType?: string
         reportDate?: string
@@ -214,9 +236,8 @@ function ChatWindow({
           })),
         signal: controller.signal,
         onDelta: chunk => {
-          setMessages(prev =>
-            appendChunkToAssistantMessage(prev, assistantMessage, chunk)
-          )
+          pendingAssistantChunk += chunk
+          scheduleAssistantChunkFlush()
         },
       }
 
@@ -227,11 +248,19 @@ function ChatWindow({
         chatPayload.reportDate = reportDate
       }
 
-      const { receivedAnyChunk } = await ChatApi.createChat({
-        ...chatPayload,
-      })
-
-      return { receivedAnyChunk }
+      try {
+        const { receivedAnyChunk } = await ChatApi.createChat({
+          ...chatPayload,
+        })
+        flushPendingAssistantChunk()
+        return { receivedAnyChunk }
+      } finally {
+        if (flushTimer) {
+          clearTimeout(flushTimer)
+          flushTimer = null
+        }
+        flushPendingAssistantChunk()
+      }
     },
     onSuccess: ({ receivedAnyChunk }, { assistantMessage }) => {
       if (receivedAnyChunk) return
