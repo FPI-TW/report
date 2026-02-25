@@ -23,6 +23,16 @@ type FormValues = {
   filename?: string
 }
 
+function getFileExtension(fileName: string) {
+  const parts = fileName.split(".")
+  if (parts.length < 2) return ""
+  return parts[parts.length - 1]?.toLowerCase() ?? ""
+}
+
+function isValidPdfFile(file: File) {
+  return getFileExtension(file.name) === "pdf"
+}
+
 export default function UploadSection() {
   const t = useTranslations("dashboard_upload")
   const tDash = useTranslations("dashboard")
@@ -31,6 +41,8 @@ export default function UploadSection() {
     handleSubmit,
     reset,
     setValue,
+    setError,
+    clearErrors,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
@@ -53,7 +65,39 @@ export default function UploadSection() {
     filename && filename.trim().length > 0 ? filename : fileList?.name
   const derivedKey = derivedName ? `${prefix}${derivedName}` : ""
 
+  function onSelectFile(file: File) {
+    if (!isValidPdfFile(file)) {
+      setError("file", {
+        type: "validate",
+        message: t("file_extension_error"),
+      })
+      setValue("file", null, { shouldValidate: true })
+      setValue("filename", "")
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      toast.error(t("toast_file_extension_error"))
+      return
+    }
+
+    clearErrors("file")
+    setValue("file", file, { shouldValidate: true })
+    setValue("filename", file.name)
+    toast.success(t("toast_file_selected"))
+  }
+
   async function onSubmitRaw(data: FormValues) {
+    if (!data.file || !isValidPdfFile(data.file)) {
+      setError("file", {
+        type: "validate",
+        message: t("file_extension_error"),
+      })
+      toast.error(t("toast_file_extension_error"))
+      return
+    }
+
+    clearErrors("file")
+
     // Validate with zod at runtime (file optional in RHF, required in schema)
     const parsed = schema.safeParse({
       category: data.category,
@@ -160,14 +204,7 @@ export default function UploadSection() {
               e.stopPropagation()
               const f = e.dataTransfer.files?.[0]
               if (f) {
-                setValue("file", f, { shouldValidate: true })
-                setValue("filename", f.name)
-                if (fileInputRef.current) {
-                  const dt = new DataTransfer()
-                  dt.items.add(f)
-                  fileInputRef.current.files = dt.files
-                }
-                toast.success(t("toast_file_selected"))
+                onSelectFile(f)
               }
             }}
           >
@@ -175,15 +212,13 @@ export default function UploadSection() {
           </div>
           <input
             type="file"
-            accept="application/pdf"
+            accept=".pdf,application/pdf"
             className="hidden"
             ref={fileInputRef}
             onChange={e => {
               const f = e.target.files?.[0]
               if (f) {
-                setValue("file", f, { shouldValidate: true })
-                setValue("filename", f.name)
-                toast.success(t("toast_file_selected"))
+                onSelectFile(f)
               }
             }}
           />

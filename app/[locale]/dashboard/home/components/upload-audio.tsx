@@ -23,6 +23,17 @@ type FormValues = {
   filename?: string
 }
 
+function getFileExtension(fileName: string) {
+  const parts = fileName.split(".")
+  if (parts.length < 2) return ""
+  return parts[parts.length - 1]?.toLowerCase() ?? ""
+}
+
+function isValidAudioFile(file: File) {
+  const extension = getFileExtension(file.name)
+  return extension === "mp3" || extension === "mp4"
+}
+
 export default function UploadAudioSection() {
   const t = useTranslations("dashboard_upload_audio")
   const tDash = useTranslations("dashboard")
@@ -31,6 +42,8 @@ export default function UploadAudioSection() {
     handleSubmit,
     reset,
     setValue,
+    setError,
+    clearErrors,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
@@ -53,7 +66,39 @@ export default function UploadAudioSection() {
     filename && filename.trim().length > 0 ? filename : fileList?.name
   const derivedKey = derivedName ? `${prefix}${derivedName}` : ""
 
+  function onSelectFile(file: File) {
+    if (!isValidAudioFile(file)) {
+      setError("file", {
+        type: "validate",
+        message: t("file_extension_error"),
+      })
+      setValue("file", null, { shouldValidate: true })
+      setValue("filename", "")
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      toast.error(t("toast_file_extension_error"))
+      return
+    }
+
+    clearErrors("file")
+    setValue("file", file, { shouldValidate: true })
+    setValue("filename", file.name)
+    toast.success(t("toast_file_selected"))
+  }
+
   async function onSubmitRaw(data: FormValues) {
+    if (!data.file || !isValidAudioFile(data.file)) {
+      setError("file", {
+        type: "validate",
+        message: t("file_extension_error"),
+      })
+      toast.error(t("toast_file_extension_error"))
+      return
+    }
+
+    clearErrors("file")
+
     const parsed = schema.safeParse({
       category: data.category,
       filename: data.filename,
@@ -160,14 +205,7 @@ export default function UploadAudioSection() {
               e.stopPropagation()
               const f = e.dataTransfer.files?.[0]
               if (f) {
-                setValue("file", f, { shouldValidate: true })
-                setValue("filename", f.name)
-                if (fileInputRef.current) {
-                  const dt = new DataTransfer()
-                  dt.items.add(f)
-                  fileInputRef.current.files = dt.files
-                }
-                toast.success(t("toast_file_selected"))
+                onSelectFile(f)
               }
             }}
           >
@@ -175,15 +213,13 @@ export default function UploadAudioSection() {
           </div>
           <input
             type="file"
-            accept="audio/*"
+            accept=".mp3,.mp4,audio/mpeg,audio/mp4"
             className="hidden"
             ref={fileInputRef}
             onChange={e => {
               const f = e.target.files?.[0]
               if (f) {
-                setValue("file", f, { shouldValidate: true })
-                setValue("filename", f.name)
-                toast.success(t("toast_file_selected"))
+                onSelectFile(f)
               }
             }}
           />
