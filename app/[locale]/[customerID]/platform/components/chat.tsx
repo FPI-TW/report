@@ -1,11 +1,13 @@
 "use client"
 
 import type { KeyboardEvent, MouseEvent, UIEvent } from "react"
-import useChat from "../hooks/useChat"
+import { useMutation } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useDragControls } from "motion/react"
 import { Button } from "@/components/ui/button"
+import { ChatApi } from "@/lib/api"
+import useChat from "../hooks/useChat"
 
 import MarkdownPreview from "@uiw/react-markdown-preview"
 import "@/app/[locale]/[customerID]/platform/markdown.css"
@@ -24,10 +26,71 @@ type ChatMessage = {
 type ChatProps = {
   reportType?: string
   reportDate?: string
-  pdfText: string
+  pdfContent: string
 }
 
-export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
+type SendChatVariables = {
+  history: ChatMessage[]
+  assistantMessage: ChatMessage
+  controller: AbortController
+}
+
+const STREAM_UI_FLUSH_INTERVAL_MS = 60
+
+function appendChunkToAssistantMessage(
+  prev: ChatMessage[],
+  assistantMessage: ChatMessage,
+  chunk: string
+): ChatMessage[] {
+  const existing = prev.find(message => message.id === assistantMessage.id)
+  if (!existing) {
+    return [
+      ...prev,
+      {
+        ...assistantMessage,
+        message: chunk,
+      },
+    ]
+  }
+
+  return prev.map(message =>
+    message.id === assistantMessage.id
+      ? { ...message, message: message.message + chunk }
+      : message
+  )
+}
+
+function fillAssistantMessageIfEmpty(
+  prev: ChatMessage[],
+  assistantMessage: ChatMessage,
+  fallbackMessage: string
+): ChatMessage[] {
+  const existing = prev.find(message => message.id === assistantMessage.id)
+  if (!existing) {
+    return [
+      ...prev,
+      {
+        ...assistantMessage,
+        message: fallbackMessage,
+      },
+    ]
+  }
+
+  return prev.map(message =>
+    message.id === assistantMessage.id && !message.message.trim()
+      ? {
+          ...message,
+          message: fallbackMessage,
+        }
+      : message
+  )
+}
+
+export default function Chat({
+  reportType,
+  reportDate,
+  pdfContent,
+}: ChatProps) {
   const { chatWindow, dragConstraints } = useChat()
   const t = useTranslations("chat")
   const hasDraggedRef = useRef(false)
@@ -55,7 +118,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
           }}
           reportType={reportType}
           reportDate={reportDate}
-          pdfText={pdfText}
+          pdfContent={pdfContent}
         />
 
         <button
@@ -105,7 +168,7 @@ type ChatWindowProps = {
   onClose: (event: MouseEvent<HTMLButtonElement>) => void
   reportType?: string | undefined
   reportDate?: string | undefined
-  pdfText: string
+  pdfContent: string
 }
 
 function ChatWindow({
@@ -113,7 +176,7 @@ function ChatWindow({
   onClose,
   reportType,
   reportDate,
-  pdfText,
+  pdfContent,
 }: ChatWindowProps) {
   const t = useTranslations("chat")
   const initialMessages: ChatMessage[] = [
@@ -130,11 +193,121 @@ function ChatWindow({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [input, setInput] = useState("")
   const [attachedText, setAttachedText] = useState("")
-  const [isSending, setIsSending] = useState(false)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [abortController, setAbortController] =
     useState<AbortController | null>(null)
   const { chatHightlight } = useChat()
+  const { mutate: sendChat, isPending: isSending } = useMutation<
+    { receivedAnyChunk: boolean },
+    unknown,
+    SendChatVariables
+  >({
+    mutationFn: async ({ history, assistantMessage, controller }) => {
+      let pendingAssistantChunk = ""
+      let flushTimer: ReturnType<typeof setTimeout> | null = null
+
+      const flushPendingAssistantChunk = () => {
+        if (!pendingAssistantChunk) return
+        const chunk = pendingAssistantChunk
+        pendingAssistantChunk = ""
+        setMessages(prev =>
+          appendChunkToAssistantMessage(prev, assistantMessage, chunk)
+        )
+      }
+
+      const scheduleAssistantChunkFlush = () => {
+        if (flushTimer) return
+        flushTimer = setTimeout(() => {
+          flushTimer = null
+          flushPendingAssistantChunk()
+        }, STREAM_UI_FLUSH_INTERVAL_MS)
+      }
+
+      const chatPayload: {
+        reportType?: string
+        reportDate?: string
+        pdfContent: string
+        messages: ChatApi.ChatMessagePayload[]
+        signal: AbortSignal
+        onDelta: (chunk: string) => void
+      } = {
+        pdfContent,
+        messages: history
+          .filter(item => item.role !== "system")
+          .map(item => ({
+            role: item.role,
+            content: item.message,
+          })),
+        signal: controller.signal,
+        onDelta: chunk => {
+          pendingAssistantChunk += chunk
+          scheduleAssistantChunkFlush()
+        },
+      }
+
+      if (reportType !== undefined) {
+        chatPayload.reportType = reportType
+      }
+      if (reportDate !== undefined) {
+        chatPayload.reportDate = reportDate
+      }
+
+      try {
+        const { receivedAnyChunk } = await ChatApi.createChat({
+          ...chatPayload,
+        })
+        flushPendingAssistantChunk()
+        return { receivedAnyChunk }
+      } finally {
+        if (flushTimer) {
+          clearTimeout(flushTimer)
+          flushTimer = null
+        }
+        flushPendingAssistantChunk()
+      }
+    },
+    onSuccess: ({ receivedAnyChunk }, { assistantMessage }) => {
+      if (receivedAnyChunk) return
+
+      setMessages(prev =>
+        fillAssistantMessageIfEmpty(prev, assistantMessage, t("no_content"))
+      )
+    },
+    onError: (error, { assistantMessage }) => {
+      const isAbort =
+        error instanceof Error &&
+        (error.name === "CanceledError" || error.name === "AbortError")
+
+      if (isAbort) {
+        setMessages(prev =>
+          fillAssistantMessageIfEmpty(
+            prev,
+            assistantMessage,
+            t("generation_stopped")
+          )
+        )
+        return
+      }
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now() + 2,
+          message: t("api_error"),
+          sender: "System",
+          direction: "incoming",
+          role: "system",
+        },
+      ])
+    },
+    onSettled: () => {
+      setAbortController(null)
+
+      if (messageListRef.current) {
+        lockedScrollTopRef.current = messageListRef.current.scrollTop
+      }
+    },
+  })
 
   function handleMessageListScroll(event: UIEvent<HTMLDivElement>) {
     const target = event.currentTarget
@@ -157,14 +330,14 @@ function ChatWindow({
   }
 
   const handleSend = useCallback(
-    async (rawText?: string) => {
+    (rawText?: string) => {
       const text = rawText ?? input
       const content = text.trim()
       if (!content || isSending) return
+
       const messageContent = attachedText
         ? `${content}\n\n${t("reference")}\n${attachedText}`
         : content
-
       const userMessage: ChatMessage = {
         id: Date.now(),
         message: messageContent,
@@ -172,7 +345,6 @@ function ChatWindow({
         direction: "outgoing",
         role: "user",
       }
-
       const assistantMessage: ChatMessage = {
         id: Date.now() + 1,
         message: "",
@@ -180,12 +352,11 @@ function ChatWindow({
         direction: "incoming",
         role: "assistant",
       }
-
       const history = [...messages, userMessage]
 
-      // Show user + empty assistant message to fill later
       setMessages([...history, assistantMessage])
       setInput("")
+      setAttachedText("")
 
       if (messageListRef.current) {
         lockedScrollTopRef.current = messageListRef.current.scrollTop
@@ -193,136 +364,9 @@ function ChatWindow({
 
       const controller = new AbortController()
       setAbortController(controller)
-      setIsSending(true)
-
-      let receivedAnyChunk = false
-
-      try {
-        setAttachedText("")
-
-        const response = await fetch("/api/chat/deepseek", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          signal: controller.signal,
-          body: JSON.stringify({
-            reportType,
-            reportDate,
-            pdfText,
-            messages: history
-              .filter(item => item.role !== "system")
-              .map(item => ({
-                role: item.role,
-                content: item.message,
-              })),
-          }),
-        })
-
-        if (!response.ok) {
-          throw new Error("Request failed")
-        }
-
-        if (!response.body) {
-          throw new Error("No response body")
-        }
-
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-
-        for (;;) {
-          const { value, done } = await reader.read()
-          if (done) break
-
-          const chunk = decoder.decode(value, { stream: true })
-          if (!chunk) continue
-
-          receivedAnyChunk = true
-
-          setMessages(prev => {
-            const existing = prev.find(m => m.id === assistantMessage.id)
-            if (!existing) {
-              return [
-                ...prev,
-                {
-                  ...assistantMessage,
-                  message: chunk,
-                },
-              ]
-            }
-            return prev.map(message =>
-              message.id === assistantMessage.id
-                ? { ...message, message: message.message + chunk }
-                : message
-            )
-          })
-        }
-
-        if (!receivedAnyChunk) {
-          setMessages(prev =>
-            prev.map(message =>
-              message.id === assistantMessage.id && !message.message.trim()
-                ? {
-                    ...message,
-                    message: t("no_content"),
-                  }
-                : message
-            )
-          )
-        }
-      } catch (error) {
-        if ((error as Error).name === "AbortError") {
-          setMessages(prev => {
-            const existing = prev.find(m => m.id === assistantMessage.id)
-            if (!existing) {
-              return [
-                ...prev,
-                {
-                  ...assistantMessage,
-                  message: t("generation_stopped"),
-                },
-              ]
-            }
-            return prev.map(message =>
-              message.id === assistantMessage.id && !message.message.trim()
-                ? {
-                    ...message,
-                    message: t("generation_stopped"),
-                  }
-                : message
-            )
-          })
-        } else {
-          setMessages(prev => [
-            ...prev,
-            {
-              id: Date.now() + 2,
-              message: t("api_error"),
-              sender: "System",
-              direction: "incoming",
-              role: "system",
-            },
-          ])
-        }
-      } finally {
-        setIsSending(false)
-        setAbortController(null)
-      }
-
-      if (messageListRef.current) {
-        lockedScrollTopRef.current = messageListRef.current.scrollTop
-      }
+      sendChat({ history, assistantMessage, controller })
     },
-    [
-      attachedText,
-      input,
-      isSending,
-      messages,
-      pdfText,
-      reportDate,
-      reportType,
-      t,
-    ]
+    [attachedText, input, isSending, messages, sendChat, t]
   )
 
   useEffect(() => {

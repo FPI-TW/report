@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/context-menu"
 import AudioFeatureBar from "../audio-feature-bar"
 import Chat from "../chat"
-import type { ReportType } from "../../lib/query-report-by-type"
+import type { ReportType } from "@/types/reports"
 import { parsePdfTextFromUrl } from "../../lib/parse-pdf-text"
 import useChat from "../../hooks/useChat"
 import useZoom from "./hooks/useZoom"
@@ -62,7 +62,7 @@ export default function PdfViewer({
   const [pdfHeight, setPdfHeight] = useState(0)
   const [pdfWidth, setPdfWidth] = useState(0)
   const [pageRatio, setPageRatio] = useState<number | null>(null)
-  const [pdfText, setPdfText] = useState("")
+  const [pdfContent, setPdfContent] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioReady, setAudioReady] = useState<boolean>(false)
   const [renderedRanges, setRenderedRanges] = useState<PageRange[]>([])
@@ -196,12 +196,12 @@ export default function PdfViewer({
     setNumPages(loadedNumPages ?? 0)
     setPageRatio(null)
     if (!loadedNumPages || loadedNumPages <= 0) {
-      setPdfText("")
+      setPdfContent("")
       return
     }
 
     const text = await parsePdfTextFromUrl(url)
-    setPdfText(text)
+    setPdfContent(text)
   }
 
   const handlePageLoadSuccess: PageLoadSuccess = page => {
@@ -225,9 +225,8 @@ export default function PdfViewer({
       setAudioReady(false)
       return
     }
-    console.log(baseName)
-    const key = `${reportType}/audio/${baseName}.mp3`
 
+    const key = `${reportType}/audio/${baseName}.mp3`
     let cancelled = false
     const fetchAudio = async () => {
       const { response, data } = await AudioApi.fetchAudioUrl(key)
@@ -267,7 +266,7 @@ export default function PdfViewer({
         <Chat
           reportType={reportType}
           reportDate={reportDate}
-          pdfText={pdfText}
+          pdfContent={pdfContent}
         />
         <AudioFeatureBar
           reportType={reportType}

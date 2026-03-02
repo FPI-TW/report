@@ -11,6 +11,7 @@ import {
   type ReportCategory,
 } from "./constants"
 import { ReportsApi } from "@/lib/api"
+import { apiFetch, withAuthHeaders } from "@/lib/api/axios"
 import useDialog from "@/hooks/useDialog"
 
 type PreviewItem = { key: string; date: string; url: string }
@@ -39,10 +40,10 @@ async function fetchReports(
   months: number,
   fileType: "pdf" | "audio"
 ): Promise<PreviewResponse> {
-  const res = await fetch(
-    `/api/${category}?page=${page}&months=${months}&fileType=${fileType}`,
+  const res = await apiFetch(
+    `/${category}?page=${page}&months=${months}&fileType=${fileType}`,
     {
-      cache: "no-store",
+      headers: withAuthHeaders(),
     }
   )
   if (!res.ok) {
