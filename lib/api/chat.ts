@@ -10,7 +10,7 @@ export type ChatMessagePayload = {
 export type CreateChatParams = {
   reportType?: string
   reportDate?: string
-  pdfText: string
+  pdfContent: string
   messages: ChatMessagePayload[]
   signal?: AbortSignal
   onDelta?: (chunk: string) => void
@@ -86,7 +86,7 @@ export const isChatAuthRequiredError = (error: unknown): boolean => {
 export async function createChat({
   reportType,
   reportDate,
-  pdfText,
+  pdfContent,
   messages,
   signal,
   onDelta,
@@ -106,10 +106,10 @@ export async function createChat({
   const payload: {
     reportType?: string
     reportDate?: string
-    pdfText: string
+    pdfContent: string
     messages: ChatMessagePayload[]
   } = {
-    pdfText: typeof pdfText === "string" ? pdfText : "",
+    pdfContent: typeof pdfContent === "string" ? pdfContent : "",
     messages,
   }
 

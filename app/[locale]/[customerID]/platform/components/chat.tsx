@@ -26,7 +26,7 @@ type ChatMessage = {
 type ChatProps = {
   reportType?: string
   reportDate?: string
-  pdfText: string
+  pdfContent: string
 }
 
 type SendChatVariables = {
@@ -86,7 +86,11 @@ function fillAssistantMessageIfEmpty(
   )
 }
 
-export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
+export default function Chat({
+  reportType,
+  reportDate,
+  pdfContent,
+}: ChatProps) {
   const { chatWindow, dragConstraints } = useChat()
   const t = useTranslations("chat")
   const hasDraggedRef = useRef(false)
@@ -114,7 +118,7 @@ export default function Chat({ reportType, reportDate, pdfText }: ChatProps) {
           }}
           reportType={reportType}
           reportDate={reportDate}
-          pdfText={pdfText}
+          pdfContent={pdfContent}
         />
 
         <button
@@ -164,7 +168,7 @@ type ChatWindowProps = {
   onClose: (event: MouseEvent<HTMLButtonElement>) => void
   reportType?: string | undefined
   reportDate?: string | undefined
-  pdfText: string
+  pdfContent: string
 }
 
 function ChatWindow({
@@ -172,7 +176,7 @@ function ChatWindow({
   onClose,
   reportType,
   reportDate,
-  pdfText,
+  pdfContent,
 }: ChatWindowProps) {
   const t = useTranslations("chat")
   const initialMessages: ChatMessage[] = [
@@ -222,12 +226,12 @@ function ChatWindow({
       const chatPayload: {
         reportType?: string
         reportDate?: string
-        pdfText: string
+        pdfContent: string
         messages: ChatApi.ChatMessagePayload[]
         signal: AbortSignal
         onDelta: (chunk: string) => void
       } = {
-        pdfText,
+        pdfContent,
         messages: history
           .filter(item => item.role !== "system")
           .map(item => ({
