@@ -35,7 +35,7 @@ type SendChatVariables = {
   controller: AbortController
 }
 
-const STREAM_UI_FLUSH_INTERVAL_MS = 60
+const STREAM_UI_FLUSH_INTERVAL_MS = 12
 
 function appendChunkToAssistantMessage(
   prev: ChatMessage[],
